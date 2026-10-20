@@ -1,0 +1,70 @@
+version: "2"
+
+run:
+  go: "1.26.5"
+
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - errcheck
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - lll
+    - nilerr
+    - prealloc
+    - revive
+    - staticcheck
+    - unparam
+    - unused
+  settings:
+    gocritic:
+      enabled-tags:
+        - performance
+        - style
+        - diagnostic
+    lll:
+      line-length: 120
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - bodyclose
+          - errcheck
+          - gosec
+        path: _test\.go
+      - linters:
+          - revive
+        text: should have a package comment
+    paths:
+      - vendor
+      - .git
+      - mocks
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  #  settings:
+  #    goimports:
+  #      local-prefixes:
+  #        - github.com/your-org/your-project
+  exclusions:
+    generated: lax
+    paths:
+      - vendor
+      - \.git
+      - mocks
+      - third_party$
+      - builtin$
+      - examples$
