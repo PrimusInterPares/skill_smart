@@ -7,7 +7,8 @@ import(
 // Порядковый номер задания на курсе: 1
 // Номер задачи из задания: 8
 // Краткое название: соответственно суммировать в новый список элементы данных списков, если их длины равны.
-// Сложность: O(N)
+// Сложность по времени: O(N)
+// Сложность по памяти: O(N)
 func SumLists(first *LinkedList, second *LinkedList) (*LinkedList, error) {
 	if first.Count() != second.Count() {
 		return &LinkedList{}, errors.New("lists have different sizes")
@@ -26,3 +27,5 @@ func SumLists(first *LinkedList, second *LinkedList) (*LinkedList, error) {
 
 	return returnList, nil
 }
+
+
