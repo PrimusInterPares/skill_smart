@@ -242,6 +242,43 @@ func TestLinkedList_Delete(t *testing.T) {
 	})
 }
 
+func TestLinkedList_Insert(t *testing.T) {
+	list := createList([]int{1, 2, 4, 5})
+	add := Node{value: 3}
+
+	t.Run("In the middle", func(t *testing.T) {
+		after := list.head.next
+
+		list.Insert(after, add)
+
+		if after.next.value != add.value {
+			t.Errorf("Node was not iserted properly after %d. Current next: %d, must be: %d", 
+				after.value, after.next.value, add.value)
+		}
+	})
+
+	t.Run("After tail", func(t *testing.T) {
+		after := list.tail
+
+		list.Insert(after, add)
+
+		if list.tail.value != add.value {
+			t.Errorf("Node was not iserted after tail. Current tail: %d, must be: %d", list.tail.value, add.value)
+		}
+	})
+
+	t.Run("One-element list", func(t *testing.T) {
+		list := createList([]int{1})
+		after := list.head
+
+		list.Insert(after, add)
+
+		if list.tail.value != add.value {
+			t.Errorf("Node was not inserted after head. Current next: %d, must be: %d", list.tail.value, add.value)
+		}
+	})
+}
+
 func TestLinkedList_InsertFirst(t *testing.T) {
 	t.Run("Regular", func(t *testing.T) {
 		list := createList([]int{2, 3})

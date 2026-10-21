@@ -109,8 +109,24 @@ func (l *LinkedList) Delete(n int, all bool) {
 	}
 }
 
-//func (l *LinkedList) Insert(after *Node, add Node) {
-//}
+func (l *LinkedList) Insert(after *Node, add Node) {
+	node := l.head
+	
+	for node != nil {
+		if node == after {
+			add.next = node.next
+			node.next = &add
+
+			if l.tail == node {
+				l.tail = &add
+			}
+
+			return
+		}
+		
+		node = node.next
+	}
+}
 
 func (l *LinkedList) InsertFirst(first Node) {
 	if l.head == nil {
