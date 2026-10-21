@@ -242,10 +242,39 @@ func TestLinkedList_Delete(t *testing.T) {
 	})
 }
 
-/*func TestLinkedList_Delete_All(t *testing.T) {
-	testCases := []struct {
-		title string
-	}
-}*/
+func TestLinkedList_InsertFirst(t *testing.T) {
+	t.Run("Regular", func(t *testing.T) {
+		list := createList([]int{2, 3})
+		
+		insertValue := 4
+		list.InsertFirst(Node{value: insertValue})
+
+		if list.Count() != 3 {
+			t.Errorf("Incorrect elements count: %d, expected: %d", list.Count(), insertValue)
+		}
+
+		if list.head.value != insertValue {
+			t.Errorf("Incorrect head value: %d, expected: %d", list.head.value, insertValue)
+		}
+	})
+
+	t.Run("Insert in empty", func(t *testing.T) {
+		list := createList([]int{})
+		
+		list.InsertFirst(Node{value: 1})
+		
+		if list.Count() == 0 {
+			t.Errorf("Nothing was inserted.")
+		}
+
+		if list.head.value != 1 {
+			t.Errorf("Incorrect head value: %d, expected: %d", list.head.value, 1)
+		}
+
+		if list.tail.value != 1 {
+			t.Errorf("Incorrect tail value: %d, expected: %d", list.tail.value, 1)
+		}
+	})
+}
 
 

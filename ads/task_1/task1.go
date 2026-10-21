@@ -112,8 +112,16 @@ func (l *LinkedList) Delete(n int, all bool) {
 //func (l *LinkedList) Insert(after *Node, add Node) {
 //}
 
-//func (l *LinkedList) InsertFirst(first Node) {
-//}
+func (l *LinkedList) InsertFirst(first Node) {
+	if l.head == nil {
+		l.head = &first
+		l.tail = &first
+		return
+	}
+
+	first.next = l.head
+	l.head = &first
+}
 
 func (l *LinkedList) Clean() {
 	l.head = nil
