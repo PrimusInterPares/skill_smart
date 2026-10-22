@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-//	"os"
-//	"reflect"
+	//"os"
+	//"reflect"
 )
 
 type Node struct {
@@ -70,7 +70,47 @@ func (l *LinkedList2) FindAll(n int) []Node {
 }
 
 func (l *LinkedList2) Delete(n int, all bool) {
+	// Empty list
+	if l.head == nil {
+		return
+	}
 
+	node := l.head
+	for node != nil {
+		if node.value == n {
+			// Single-element list
+			if node.next == nil && node.prev == nil {
+				l.head = nil
+				l.tail = nil
+	
+				return
+			}
+
+			switch node {
+			case l.head:
+				node.next.prev = nil
+				l.head = node.next
+			case l.tail:
+				node.prev.next = nil
+				l.tail = node.prev
+
+				return
+			default:
+				prev := node.prev
+				next := node.next
+				prev.next = next
+				next.prev = prev
+			}
+
+			node = node.next
+
+			if !all {
+				return
+			}
+		} else {
+			node = node.next
+		}
+	}
 }
 
 func (l *LinkedList2) Insert(after *Node, add Node) {

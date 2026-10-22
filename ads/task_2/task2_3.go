@@ -146,90 +146,175 @@ func TestLinkedList2_FindAll(t *testing.T) {
 	})
 }
 
-/*func TestLinkedList2_Delete(t *testing.T) {
-	testCases := []struct {
-		title string
-		initialValues []int
-		toDelete int
-		all bool
-		expectedCount int
-		expectedHead int
-		expectedTail int
-	}{
-		{
-			title: "Delete head",
-			initialValues: []int{1, 3},
-			toDelete: 1,
-			all: false,
-			expectedCount: 1,
-			expectedHead: 3,
-			expectedTail: 3,
-		},
-		{
-			title: "Delete tail",
-			initialValues: []int{1, 3},
-			toDelete: 3,
-			all: false,
-			expectedCount: 1,
-			expectedHead: 1,
-			expectedTail: 1,
-		},
-			{
-			title: "Delete from the middle",
-			initialValues: []int{1, 2, 3},
-			toDelete: 2,
-			all: false,
-			expectedCount: 2,
-			expectedHead: 1,
-			expectedTail: 3, 
-		},
-		{
-			title: "Node is not found",
-			initialValues: []int{1, 2, 3},
-			toDelete: 5,
-			all: false,
-			expectedCount: 3,
-			expectedHead: 1, 
-			expectedTail: 3,
-		},
-		{
-			title: "Delete all inclusions",
-			initialValues: []int{1, 2, 1, 3, 1, 4},
-			toDelete: 1,
-			all: true,
-			expectedCount: 3,
-			expectedHead: 2,
-			expectedTail: 4,
-		},
-		{
-			title: "Multiple heads to delete",
-			initialValues: []int{1, 1, 1, 1, 2},
-			toDelete: 1,
-			all: true,
-			expectedCount: 1,
-			expectedHead: 2,
-			expectedTail: 2,
-		},
-	}
+func TestLinkedList2_Delete(t *testing.T) {
+	t.Run("Delete head", func(t *testing.T) {
+		expectedCount := 1
+		expectedHead := 3
+		expectedTail := 3
+		list := createList([]int{1, 3})
+		list.Delete(1, false)
 
-	for _, tc := range testCases {
-		t.Run(tc.title, func(t *testing.T) {
-			list := createList(tc.initialValues)
-			list.Delete(tc.toDelete, tc.all)
+		if list.Count() != expectedCount {
+			t.Errorf("Got %d elements after deletion, expected %d", list.Count(), expectedCount)
+		}
 
-			if list.Count() != tc.expectedCount {
-				t.Errorf("Got %d elements after deletion, expected %d", list.Count(), tc.expectedCount)
-			}
+		if list.head.value != expectedHead {
+			t.Errorf("Expected head value: %d, got: %d", expectedHead, list.head.value)
+		}
 
-			if list.head.value != tc.expectedHead {
-				t.Errorf("Expected head value: %d, got: %d", tc.expectedHead, list.head.value)
-			}
+		if list.tail.value != expectedTail {
+			t.Errorf("Expected tail value: %d, got: %d", expectedTail, list.tail.value)
+		}
 
-			if list.tail.value != tc.expectedTail {
-				t.Errorf("Expected tail value: %d, got: %d", tc.expectedTail, list.tail.value)
-			}
-		})
-	}
+		if list.tail.prev != nil {
+			t.Errorf("Tail prev is not nil")
+		}
+
+		if list.head.next != nil {
+			t.Errorf("Head next is not nil")
+		}
+	})
+	
+	t.Run("Delete tail", func(t *testing.T) {
+		expectedCount := 1
+		expectedHead := 1
+		expectedTail := 1
+		list := createList([]int{1, 3})
+		list.Delete(3, false)
+
+		if list.Count() != expectedCount {
+			t.Errorf("Got %d elements after deletion, expected %d", list.Count(), expectedCount)
+		}
+
+		if list.head.value != expectedHead {
+			t.Errorf("Expected head value: %d, got: %d", expectedHead, list.head.value)
+		}
+
+		if list.tail.value != expectedTail {
+			t.Errorf("Expected tail value: %d, got: %d", expectedTail, list.tail.value)
+		}
+
+		if list.tail.prev != nil {
+			t.Errorf("Tail prev is not nil")
+		}
+
+		if list.head.next != nil {
+			t.Errorf("Head next is not nil")
+		}
+	})
+	
+	t.Run("Delete from the middle", func(t *testing.T) {
+		expectedCount := 2
+		expectedHead := 1
+		expectedTail := 3
+		list := createList([]int{1, 2, 3})
+		list.Delete(2, false)
+
+		if list.Count() != expectedCount {
+			t.Errorf("Got %d elements after deletion, expected %d", list.Count(), expectedCount)
+		}
+
+		if list.head.value != expectedHead {
+			t.Errorf("Expected head value: %d, got: %d", expectedHead, list.head.value)
+		}
+
+		if list.tail.value != expectedTail {
+			t.Errorf("Expected tail value: %d, got: %d", expectedTail, list.tail.value)
+		}
+
+		if list.head.next.value != expectedTail {
+			t.Errorf("Head next is incorrect: %d, expecrted: %d", list.head.next.value, expectedTail)
+		}
+
+		if list.tail.prev.value != expectedHead {
+			t.Errorf("Tail prev is incorrect: %d, expecrted: %d", list.tail.prev.value, expectedHead)
+		}
+	})
+	
+	t.Run("Node is not found", func(t *testing.T) {
+		expectedCount := 3
+		expectedHead := 1 
+		expectedTail := 3
+		list := createList([]int{1, 2, 3})
+		list.Delete(5, false)
+
+		if list.Count() != expectedCount {
+			t.Errorf("Got %d elements after deletion, expected %d", list.Count(), expectedCount)
+		}
+
+		if list.head.value != expectedHead {
+			t.Errorf("Expected head value: %d, got: %d", expectedHead, list.head.value)
+		}
+
+		if list.tail.value != expectedTail {
+			t.Errorf("Expected tail value: %d, got: %d", expectedTail, list.tail.value)
+		}
+	})
+	
+	t.Run("Delete all inclusions", func(t *testing.T) {
+		expectedCount := 3
+		expectedHead := 2
+		expectedTail := 4
+		list := createList([]int{1, 2, 1, 3, 1, 4})
+		list.Delete(1, true)
+
+		if list.Count() != expectedCount {
+			t.Errorf("Got %d elements after deletion, expected %d", list.Count(), expectedCount)
+		}
+
+		if list.head.value != expectedHead {
+			t.Errorf("Expected head value: %d, got: %d", expectedHead, list.head.value)
+		}
+
+		if list.tail.value != expectedTail {
+			t.Errorf("Expected tail value: %d, got: %d", expectedTail, list.tail.value)
+		}
+
+		if list.head.prev != nil {
+			t.Errorf("Head prev is not nil")
+		}
+
+		if list.tail.next != nil {
+			t.Errorf("Tail next is not nil")
+		}
+
+		secondNode := list.head.next
+		if secondNode.prev != list.head {
+			t.Errorf("Middle node prev is not head")
+		}
+
+		if secondNode.next != list.tail {
+			t.Errorf("Middle node next is not tail")
+		}
+	})
+	
+	t.Run("Multiple heads to delete", func(t *testing.T) {
+		expectedCount := 1
+		expectedHead := 2
+		expectedTail := 2
+		list := createList([]int{1, 1, 1, 1, 2})
+		list.Delete(1, true)
+
+		if list.Count() != expectedCount {
+			t.Errorf("Got %d elements after deletion, expected %d", list.Count(), expectedCount)
+		}
+
+		if list.head.value != expectedHead {
+			t.Errorf("Expected head value: %d, got: %d", expectedHead, list.head.value)
+		}
+
+		if list.tail.value != expectedTail {
+			t.Errorf("Expected tail value: %d, got: %d", expectedTail, list.tail.value)
+		}
+
+		if list.head.next != nil {
+			t.Errorf("Head next is not nil")
+		}
+
+		if list.tail.prev != nil {
+			t.Errorf("Tail prev is not nil")
+		}
+	})
 
 	t.Run("Delete from empty list", func(t *testing.T) {
 		list := createList([]int{})
@@ -247,6 +332,10 @@ func TestLinkedList2_FindAll(t *testing.T) {
 		if list.Count() != 0 {
 			t.Fatalf("Not all elements were deleted, %d elements left.", list.Count())
 		}
+
+		if list.head != nil || list.tail != nil {
+			t.Errorf("List is not empty")
+		}
 	})
 	
 	t.Run("One-element list", func(t *testing.T) {
@@ -257,7 +346,7 @@ func TestLinkedList2_FindAll(t *testing.T) {
 			t.Fatalf("Not all elements were deleted, %d elements left.", list.Count())
 		}
 	})
-}*/
+}
 
 func TestLinkedList2_Insert(t *testing.T) {
 	list := createList([]int{1, 2, 4, 5})
