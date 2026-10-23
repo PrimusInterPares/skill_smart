@@ -3,10 +3,32 @@ package main
 // Порядковый номер задания на курсе: 2
 // Номер задачи из задания: 9
 // Краткое название: метод, который "переворачивает" порядок элементов в связном списке, меняя его на противоположный.
-// Сложность по времени: O()
-// Сложность по памяти: O()
+// Сложность по времени: O(N)
+// Сложность по памяти: O(1)
 func ReverseList(l *LinkedList2) *LinkedList2 {
-	return &LinkedList2{}
+	//Empty list
+	if l.head == nil {
+		return l
+	}
+
+	// One-element list
+	if l.Count() == 1 {
+		return l
+	}
+
+	tail := l.tail
+	l.tail = l.head
+	node := l.head
+	for node != nil {
+		next := node.next
+
+		node.prev, node.next = node.next, node.prev
+
+		node = next
+	}
+	l.head = tail
+
+	return l
 }
 
 // Номер задачи из задания: 10
