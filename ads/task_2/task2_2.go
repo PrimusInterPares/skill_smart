@@ -41,28 +41,26 @@ func HasCycle(l *LinkedList2) bool {
 		return false
 	}
 
-	visitedNodes := make(map[*Node]struct{})
+	visited := make(map[*Node]struct{})
 	node := l.head
-	for node != nil {
-		if node.next != nil {
-			if _, exists := visitedNodes[node.next]; exists {
-				return true
-			}
-		}
-		visitedNodes[node] = struct{}{}
-		node = node.next
-	}
+	var prevNode *Node
 
-	visitedNodes = make(map[*Node]struct{})
-	node = l.tail
 	for node != nil {
-		if node.prev != nil {
-			if _, exists := visitedNodes[node.prev]; exists {
+		// forward
+		if node.next != nil {
+			if _, exists := visited[node.next]; exists {
 				return true
 			}
 		}
-		visitedNodes[node] = struct{}{}
-		node = node.prev
+
+		// backward
+		if node.prev != nil && node.prev != prevNode {
+			return true
+		}
+
+		visited[node] = struct{}{}
+		prevNode = node
+		node = node.next
 	}
 
 	return false

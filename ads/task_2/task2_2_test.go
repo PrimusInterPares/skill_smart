@@ -159,7 +159,7 @@ func TestHasCycle(t *testing.T) {
 
 	t.Run("One-element list with backward cycle", func(t *testing.T) {
 		l := createList([]int{1})
-		l.tail.prev = l.tail
+		l.head.prev = l.head
 
 		has := HasCycle(l)
 
