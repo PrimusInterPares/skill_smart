@@ -6,7 +6,7 @@ package main
 // Сложность по времени: O(N)
 // Сложность по памяти: O(1)
 func ReverseList(l *LinkedList2) *LinkedList2 {
-	//Empty list
+	// Empty list
 	if l.head == nil {
 		return l
 	}
@@ -33,9 +33,38 @@ func ReverseList(l *LinkedList2) *LinkedList2 {
 
 // Номер задачи из задания: 10
 // Краткое название: булев метод, который сообщает, имеются ли циклы (замкнутые на себя по кругу) внутри списка.
-// Сложность по времени: O()
-// Сложность по памяти: O()
+// Сложность по времени: O(N)
+// Сложность по памяти: O(N)
 func HasCycle(l *LinkedList2) bool {
+	// Empty list
+	if l.head == nil {
+		return false
+	}
+
+	visitedNodes := make(map[*Node]struct{})
+	node := l.head
+	for node != nil {
+		if node.next != nil {
+			if _, exists := visitedNodes[node.next]; exists {
+				return true
+			}
+		}
+		visitedNodes[node] = struct{}{}
+		node = node.next
+	}
+
+	visitedNodes = make(map[*Node]struct{})
+	node = l.tail
+	for node != nil {
+		if node.prev != nil {
+			if _, exists := visitedNodes[node.prev]; exists {
+				return true
+			}
+		}
+		visitedNodes[node] = struct{}{}
+		node = node.prev
+	}
+
 	return false
 }
 

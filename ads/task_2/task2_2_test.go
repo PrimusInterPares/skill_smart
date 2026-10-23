@@ -92,15 +92,122 @@ func TestReverseList(t *testing.T) {
 }
 
 func TestHasCycle(t *testing.T) {
+	t.Run("Has no cycles", func(t *testing.T) {
+		l := createList([]int{1, 2, 3})
+		
+		has:= HasCycle(l)
 
+		if has {
+			t.Errorf("The list does not definitely have cylces")
+		}
+	})
+
+	t.Run("Has backward cycle", func(t *testing.T) {
+		l := createList([]int{1, 2, 3, 4, 5})
+		l.head.next.prev = l.tail // 2.prev == 5
+
+		has := HasCycle(l)
+
+		if !has {
+			t.Errorf("The list does have backward cycle")
+		}
+	})
+
+	t.Run("Has forward cycle", func(t *testing.T) {
+		l := createList([]int{1, 2, 3, 4, 5})
+		l.tail.prev.next = l.head.next // 4.next == 2
+
+		has := HasCycle(l)
+
+		if !has {
+			t.Errorf("The list does have forward cycle")
+		}
+	})
+
+	t.Run("Has multiple cylces", func(t *testing.T) {
+		l := createList([]int{1, 2, 3, 4, 5})
+		l.head.prev = l.tail // 1.prev == 5
+		l.tail.prev.next = l.head.next // 4.next == 2
+
+		has := HasCycle(l)
+
+		if !has {
+			t.Errorf("The list even has multiple cycles")
+		}
+	})
+
+	t.Run("Empty list", func(t *testing.T) {
+		l := createList([]int{})
+		
+		has := HasCycle(l)
+
+		if has {
+			t.Errorf("Empty list cannot have cycles")
+		}
+	})
+
+	t.Run("One-element list with forward cycle", func(t *testing.T) {
+		l := createList([]int{1})
+		l.head.next = l.head
+
+		has := HasCycle(l)
+
+		if !has {
+			t.Errorf("One-element list can be cycled to itself (forward)")
+		}
+	})
+
+	t.Run("One-element list with backward cycle", func(t *testing.T) {
+		l := createList([]int{1})
+		l.tail.prev = l.tail
+
+		has := HasCycle(l)
+
+		if !has {
+			t.Errorf("One-element list can be cycled to itself (backward)")
+		}
+	})
+
+	t.Run("One-element list without cycle", func(t *testing.T) {
+		l := createList([]int{1})
+
+		has := HasCycle(l)
+
+		if has {
+			t.Errorf("The list has no cycles")
+		}
+	})
 }
 
-func TestSortList(t *testing.T) {
+/*func TestSortList(t *testing.T) {
 
-}
+}*/
 
-func TestMergeLists(t *testing.T) {
+/*func TestMergeLists(t *testing.T) {
+	t.Run("Unsorted lists of different length", func(t *testing.T) {
+		first := createList([]int{2, 3, 1, 4, 0})
+		second := createList([]int{5, 4, 2})
 
-}
+		result := MergeLists(first, second)
+
+		rFirst := result.head
+		rSecond := rFirst.next
+		rThird := rSecond.next
+		rFourth := rThird.next
+		rFifth := rFourth.next
+		
+		if rFirst.value != 2 {
+			t.Errorf("rFirst value is incorrect: %d, expected: %d", rFirst.value, 2)
+		}
+
+		if rFirst.prev != nil {
+			t.Errorf("rHead has prev")
+		}
+	
+		if rFirst.next == nil {
+			t.Errorf("rFirst does not have next")
+		}
+	})
+}*/
 
 
