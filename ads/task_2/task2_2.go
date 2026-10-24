@@ -1,5 +1,9 @@
 package main
 
+import(
+	"slices"
+)
+
 // Порядковый номер задания на курсе: 2
 // Номер задачи из задания: 9
 // Краткое название: метод, который "переворачивает" порядок элементов в связном списке, меняя его на противоположный.
@@ -68,14 +72,41 @@ func HasCycle(l *LinkedList2) bool {
 
 // Номер задачи из задания: 11
 // Краткое название: метод, сортирующий список.
-// Сложность по времени: O()
-// Сложность по памяти: O()
+// Сложность по времени: O(N*logN)
+// Сложность по памяти: O(N)
 func SortList(l *LinkedList2) *LinkedList2 {
-	return &LinkedList2{}
+	// Empty or one-element list
+	if l.head == nil || l.head.next == nil {
+		return l
+	}
+
+	sorted := &LinkedList2{}
+
+	var values []int
+	for node := l.head; node != nil; node = node.next {
+		values = append(values, node.value)
+	}
+	slices.Sort(values)
+
+	var tail *Node
+	for _, val := range values {
+		newNode := &Node{value: val}
+
+		if sorted.head == nil {
+			sorted.head = newNode
+			tail = newNode
+		} else {
+			tail.next = newNode
+			newNode.prev = tail
+			tail = newNode
+		}
+	}
+
+	return sorted
 }
 
 // Номер задачи из задания: 12
-// Краткое название: метод, объединяющий два списка в третий.
+// Краткое название: метод, сортирующий два списка и объединяющий их в отсортированный третий.
 // Сложность по времени: O()
 // Сложность по памяти: O()
 func MergeLists(first *LinkedList2, second *LinkedList2) *LinkedList2 {

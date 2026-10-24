@@ -179,9 +179,33 @@ func TestHasCycle(t *testing.T) {
 	})
 }
 
-/*func TestSortList(t *testing.T) {
+func TestSortList(t *testing.T) {
+	t.Run("Unsorted list", func(t *testing.T) {
+		l := createList([]int{3, 2, 1})
+		sorted	 := SortList(l)
 
-}*/
+		sFirst := sorted.head
+		sSecond := sFirst.next
+		sThird := sSecond.next
+
+		if sFirst.value != 1 || sSecond.value != 2 || sThird.value != 3 {
+			t.Errorf("List is not sorted: %d, %d, %d", sFirst.value, sSecond.value, sThird.value)
+		}
+	})
+
+	t.Run("Sorted list", func(t *testing.T) {
+		l := createList([]int{1, 2, 3})
+		sorted := SortList(l)
+
+		sFirst := sorted.head
+		sSecond := sFirst.next
+		sThird := sSecond.next
+
+		if sFirst.value != 1 || sSecond.value != 2 || sThird.value != 3 {
+			t.Errorf("List is unsorted now: %d, %d, %d", sFirst.value, sSecond.value, sThird.value)
+		}
+	})
+}
 
 /*func TestMergeLists(t *testing.T) {
 	t.Run("Unsorted lists of different length", func(t *testing.T) {
