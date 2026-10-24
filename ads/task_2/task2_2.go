@@ -111,8 +111,8 @@ func capacity(l *LinkedList2) int {
 
 // Номер задачи из задания: 12
 // Краткое название: метод, сортирующий два списка и объединяющий их в отсортированный третий.
-// Сложность по времени: O()
-// Сложность по памяти: O()
+// Сложность по времени: O(N*logN)
+// Сложность по памяти: O(N)
 func MergeLists(first, second *LinkedList2) *LinkedList2 {
 	if first.head == nil {
 		return SortList(second)
@@ -126,49 +126,40 @@ func MergeLists(first, second *LinkedList2) *LinkedList2 {
 	sortedSecond := SortList(second)
 	merged := &LinkedList2{}
 
-	var mergeFirst *LinkedList2
-	var mergeSecond *LinkedList2
-	// First element of merged will be <= any element from any sorted list merged in second
-	if sortedFirst.head.value < sortedSecond.head.value {
-		mergeFirst = sortedFirst
-		mergeSecond = sortedSecond
-	} else {
-		mergeFirst = sortedSecond
-		mergeSecond = sortedFirst
-	}
-
-	i := 0
-	for node := mergeFirst.head; node != nil; node = node.next {
-		newNode := Node{value: node.value}
-
-		if i == 0 {
-			merged.InsertFirst(newNode)
-			i++
+	p1 := sortedFirst.head
+	p2 := sortedSecond.head
+	
+	for p1 != nil && p2 != nil {
+		if p1.value <= p2.value {
+			appendNode(merged, p1.value)
+			p1 = p1.next
 		} else {
-			merged.Insert(merged.tail, newNode)
+			appendNode(merged, p2.value)
+			p2 = p2.next
 		}
 	}
 
-	for node := mergeSecond.head; node != nil; node = node.next {
-		func() {
-			for mNode := merged.head; mNode != nil; mNode = mNode.next {
-				if node.value >= mNode.value {
-					if mNode == merged.tail {
-						merged.Insert(mNode, Node{value: node.value})
-						return
-					}
-					
-					mNodeNext := mNode.next
-					if mNodeNext.value > node.value {
-						merged.Insert(mNode, Node{value: node.value})
-						return
-					}
-				}
-			}
-		}()
+	for p1 != nil {
+		appendNode(merged, p1.value)
+		p1 = p1.next
 	}
-	
+
+	for p2 != nil {
+		appendNode(merged, p2.value)
+		p2 = p2.next
+	}
+
 	return merged
+}
+
+func appendNode(l *LinkedList2, val int) {
+	newNode := Node{value: val}
+
+	if l.head == nil {
+		l.InsertFirst(newNode)
+	} else {
+		l.Insert(l.tail, newNode)
+	}
 }
 
 

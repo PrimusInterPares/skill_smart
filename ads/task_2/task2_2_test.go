@@ -217,6 +217,10 @@ func TestMergeLists(t *testing.T) {
 		rFirst := result.head
 		rSecond := rFirst.next
 
+		if result.Count() != 2 {
+			t.Errorf("Merged list has unexpected count of elements: %d", result.Count())
+		}
+
 		if rFirst.value != 1 {
 			t.Errorf("rFirst value is incorrect: %d, expected: %d", rFirst.value, 1)
 		}
