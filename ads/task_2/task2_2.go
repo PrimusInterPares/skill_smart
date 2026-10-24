@@ -80,29 +80,34 @@ func SortList(l *LinkedList2) *LinkedList2 {
 		return l
 	}
 
-	sorted := &LinkedList2{}
-
-	var values []int
+	values := make([]int, 0, capacity(l))
 	for node := l.head; node != nil; node = node.next {
 		values = append(values, node.value)
 	}
 	slices.Sort(values)
 
-	var tail *Node
-	for _, val := range values {
-		newNode := &Node{value: val}
+	sorted := &LinkedList2{}
+	for i, val := range values {
+		newNode := Node{value: val}
 
-		if sorted.head == nil {
-			sorted.head = newNode
-			tail = newNode
+		if i == 0 {
+			sorted.InsertFirst(newNode)
 		} else {
-			tail.next = newNode
-			newNode.prev = tail
-			tail = newNode
+			sorted.Insert(sorted.tail, newNode)
 		}
 	}
 
 	return sorted
+}
+
+
+func capacity(l *LinkedList2) int {
+	count := 0
+	for node := l.head; node != nil; node = node.next {
+		count++
+	}
+
+	return count
 }
 
 // Номер задачи из задания: 12
