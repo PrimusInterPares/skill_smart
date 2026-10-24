@@ -353,7 +353,8 @@ func TestLinkedList2_Insert(t *testing.T) {
 	add := Node{value: 3}
 
 	t.Run("In the middle", func(t *testing.T) {
-		after := list.head.next
+		after := list.head.next // 2
+		afterNext := after.next // 4
 
 		list.Insert(after, add)
 
@@ -366,6 +367,10 @@ func TestLinkedList2_Insert(t *testing.T) {
 		if insertedNode.prev != after {
 			t.Errorf("Prev of the inserted node is incorrect. Current value: %d, expected: %d",
 				insertedNode.prev.value, after.value)
+		}
+
+		if afterNext.prev != insertedNode {
+			t.Errorf("Prev of afterNext is incorrect. Current value: %d, expected: %d", afterNext.prev.value, insertedNode.value)
 		}
 	})
 

@@ -207,19 +207,76 @@ func TestSortList(t *testing.T) {
 	})
 }
 
-/*func TestMergeLists(t *testing.T) {
-	t.Run("Unsorted lists of different length", func(t *testing.T) {
-		first := createList([]int{2, 3, 1, 4, 0})
-		second := createList([]int{5, 4, 2})
+func TestMergeLists(t *testing.T) {
+	t.Run("One-element lists of the same values", func(t *testing.T) {
+		first := createList([]int{1})
+		second :=createList([]int{1})
+
+		result := MergeLists(first, second) // 1, 1
+
+		rFirst := result.head
+		rSecond := rFirst.next
+
+		if rFirst.value != 1 {
+			t.Errorf("rFirst value is incorrect: %d, expected: %d", rFirst.value, 1)
+		}
+
+		if rFirst.prev != nil {
+			t.Errorf("rHead has prev")
+		}
+	
+		if rSecond.value != 1 {
+			t.Errorf("rSecond value is incorrect: %d, expected: %d", rSecond.value, 1)
+		}
+
+		if rSecond.next != nil {
+			t.Errorf("rTail has next")
+		}
+	
+		if rSecond.prev != rFirst {
+			t.Errorf("rSecond has incorrect prev")
+		}
+	})
+
+	t.Run("One-element lists of different values", func(t *testing.T) {
+		first := createList([]int{7})
+		second :=createList([]int{3})
+
+		result := MergeLists(first, second) // 3, 7
+
+		rFirst := result.head
+		rSecond := rFirst.next
+
+		if rFirst.value != 3 {
+			t.Errorf("rFirst value is incorrect: %d, expected: %d", rFirst.value, 3)
+		}
+
+		if rFirst.prev != nil {
+			t.Errorf("rHead has prev")
+		}
+	
+		if rSecond.value != 7 {
+			t.Errorf("rSecond value is incorrect: %d, expected: %d", rSecond.value, 7)
+		}
+
+		if rSecond.next != nil {
+			t.Errorf("rTail has next")
+		}
+	
+		if rSecond.prev != rFirst {
+			t.Errorf("rSecond has incorrect prev")
+		}
+	})
+
+	t.Run("First list is empty", func(t *testing.T) {
+		first := createList([]int{})
+		second := createList([]int{3, 2})
 
 		result := MergeLists(first, second)
 
 		rFirst := result.head
 		rSecond := rFirst.next
-		rThird := rSecond.next
-		rFourth := rThird.next
-		rFifth := rFourth.next
-		
+
 		if rFirst.value != 2 {
 			t.Errorf("rFirst value is incorrect: %d, expected: %d", rFirst.value, 2)
 		}
@@ -228,10 +285,141 @@ func TestSortList(t *testing.T) {
 			t.Errorf("rHead has prev")
 		}
 	
-		if rFirst.next == nil {
-			t.Errorf("rFirst does not have next")
+		if rSecond.value != 3 {
+			t.Errorf("rSecond value is incorrect: %d, expected: %d", rSecond.value, 3)
+		}
+
+		if rSecond.next != nil {
+			t.Errorf("rTail has next")
+		}
+	
+		if rSecond.prev != rFirst {
+			t.Errorf("rSecond has incorrect prev")
 		}
 	})
-}*/
+
+	t.Run("Second list is empty", func(t *testing.T) {
+		first := createList([]int{3, 2})
+		second := createList([]int{})
+
+		result := MergeLists(first, second)
+
+		rFirst := result.head
+		rSecond := rFirst.next
+
+		if rFirst.value != 2 {
+			t.Errorf("rFirst value is incorrect: %d, expected: %d", rFirst.value, 2)
+		}
+
+		if rFirst.prev != nil {
+			t.Errorf("rHead has prev")
+		}
+	
+		if rSecond.value != 3 {
+			t.Errorf("rSecond value is incorrect: %d, expected: %d", rSecond.value, 3)
+		}
+
+		if rSecond.next != nil {
+			t.Errorf("rTail has next")
+		}
+	
+		if rSecond.prev != rFirst {
+			t.Errorf("rSecond has incorrect prev")
+		}
+	})
+
+	t.Run("Both lists are empty", func(t *testing.T) {
+		first := createList([]int{})
+		second := createList([]int{})
+
+		result := MergeLists(first, second)
+
+		rHead := result.head
+		rTail := result.tail
+
+		if rHead != nil {
+			t.Errorf("rHead must be nil")
+		}
+
+		if rTail != nil {
+			t.Errorf("rTail must be nil")
+		}
+	})
+
+	t.Run("Unsorted lists of different length", func(t *testing.T) {
+		first := createList([]int{2, 4, 0, 11}) // 0, 2, 4, 11
+		second := createList([]int{5, 3, 2}) // 2, 3, 5
+
+		result := MergeLists(first, second) // 0, 2, 2, 3, 4, 5, 11
+
+		rFirst := result.head
+		rSecond := rFirst.next
+		rThird := rSecond.next
+		rFourth := rThird.next
+		rFifth := rFourth.next
+		rSixth := rFifth.next
+		rSeventh := rSixth.next
+		
+		if rFirst.value != 0 {
+			t.Errorf("rFirst value is incorrect: %d, expected: %d", rFirst.value, 0)
+		}
+
+		if rFirst.prev != nil {
+			t.Errorf("rHead has prev")
+		}
+	
+		if rSecond.value != 2 {
+			t.Errorf("rSecond value is incorrect: %d, expected: %d", rSecond.value, 2)
+		}
+
+		if rSecond.prev != rFirst {
+			t.Errorf("rSecond has incorrect prev")
+		}
+	
+		if rThird.value != 2 {
+			t.Errorf("rThird value is incorrect: %d, expected: %d", rThird.value, 2)
+		}
+
+		if rThird.prev != rSecond {
+			t.Errorf("rThird has incorrect prev")
+		}
+	
+		if rFourth.value != 3 {
+			t.Errorf("rFourth value is incorrect: %d, expected: %d", rFourth.value, 3)
+		}
+
+		if rFourth.prev != rThird {
+			t.Errorf("rFourth has incorrect prev")
+		}
+	
+		if rFifth.value != 4 {
+			t.Errorf("rFifth value is incorrect: %d, expected: %d", rFifth.value, 4)
+		}
+
+		if rFifth.prev != rFourth {
+			t.Errorf("rFifth has incorrect prev")
+		}
+	
+		if rSixth.value != 5 {
+			t.Errorf("rSixth value is incorrect: %d, expected: %d", rSixth.value, 5)
+		}
+
+		if rSixth.prev != rFifth {
+			t.Errorf("rSixth has incorrect prev")
+		}
+	
+		if rSeventh.value != 11 {
+			t.Errorf("rSeventh value is incorrect: %d, expected: %d", rSeventh.value, 11)
+		}
+
+		if rSeventh.next != nil {
+			t.Errorf("rTail has next")
+		}
+	
+		if rSeventh.prev != rSixth {
+			t.Errorf("rSeventh has incorrect prev")
+		}
+	})
+}
 
 

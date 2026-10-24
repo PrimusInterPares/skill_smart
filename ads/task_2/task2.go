@@ -114,13 +114,18 @@ func (l *LinkedList2) Delete(n int, all bool) {
 }
 
 func (l *LinkedList2) Insert(after *Node, add Node) {
+	oldNext := after.next
+	
 	add.next = after.next
 	add.prev = after
 	after.next = &add
-	
+
 	if after == l.tail {
 		l.tail = &add
+		return
 	}
+
+	oldNext.prev = &add
 }
 
 func (l *LinkedList2) InsertFirst(first Node) {
