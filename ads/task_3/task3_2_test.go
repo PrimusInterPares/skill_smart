@@ -4,36 +4,19 @@ import(
 	"testing"
 )
 
-func createDA[T any](items []T) *DynArray[T] {
-	da := &DynArray[T]{}
+func createBDA[T any](items []T) *BankDynArray[T] {
+	bda := NewBankDynArray[T]()
 
-	if len(items) == 0 {
-		da.Init()
-
-		return da
+	for _, item := range items {
+		bda.Append(item)
 	}
 
-	initCapacity := max(minimalBufferSize, len(items))
-	da.MakeArray(initCapacity)
-	copy(da.array, items)
-	da.count = len(items)
-
-	return da
+	return bda
 }
 
-func makeRange(minVal, maxVal int) []int {
-	r := make([]int, maxVal - minVal + 1)
-	
-	for i := range r {
-		r[i] = minVal + i
-	}
-
-	return r
-}
-
-func TestDynArray_Insert(t *testing.T) {
+func TestBankDynArray_Insert(t *testing.T) {
 	t.Run("Buffer remains unchanged", func(t *testing.T) {
-		arr := createDA(makeRange(2, 6))
+		arr := createBDA(makeRange(2, 6))
 
 		arr.Insert(100, 1)
 
@@ -59,7 +42,7 @@ func TestDynArray_Insert(t *testing.T) {
 	})
 
 	t.Run("Buffer changes", func(t *testing.T) {
-		arr := createDA(makeRange(1, 16))
+		arr := createBDA(makeRange(1, 16))
 
 		arr.Insert(100, 12)
 
@@ -85,7 +68,7 @@ func TestDynArray_Insert(t *testing.T) {
 	})
 
 	t.Run("Negative index", func(t *testing.T) {
-		arr := createDA([]int{1, 2, 3})
+		arr := createBDA([]int{1, 2, 3})
 
 		err := arr.Insert(100, -1)
 
@@ -99,7 +82,7 @@ func TestDynArray_Insert(t *testing.T) {
 	})
 
 	t.Run("Index > count", func(t *testing.T) {
-		arr := createDA([]int{1, 2, 3})
+		arr := createBDA([]int{1, 2, 3})
 
 		err := arr.Insert(100, 4)
 
@@ -113,7 +96,7 @@ func TestDynArray_Insert(t *testing.T) {
 	})
 
 	t.Run("Index == count", func(t *testing.T) {
-		arr := createDA([]int{1, 2, 3})
+		arr := createBDA([]int{1, 2, 3})
 
 		err := arr.Insert(100, 3)
 
@@ -131,9 +114,9 @@ func TestDynArray_Insert(t *testing.T) {
 	})
 }
 
-func TestDynArray_Remove(t *testing.T) {
+func TestBankDynArray_Remove(t *testing.T) {
 	t.Run("Buffer remains unchanged", func(t *testing.T) {
-		arr := createDA([]int{1, 2, 3})
+		arr := createBDA([]int{1, 2, 3})
 
 		arr.Remove(1)
 
@@ -159,7 +142,7 @@ func TestDynArray_Remove(t *testing.T) {
 	})
 
 	t.Run("Buffer changes", func(t *testing.T) {
-		arr := createDA(makeRange(0, 31))
+		arr := createBDA(makeRange(0, 31))
 		oldCount := arr.count
 		oldCapacity := arr.capacity
 
@@ -181,7 +164,7 @@ func TestDynArray_Remove(t *testing.T) {
 	})
 
 	t.Run("Buffer cannot be less than minimalBufferSize", func(t *testing.T) {
-		arr := createDA(makeRange(1, 8))
+		arr := createBDA(makeRange(1, 8))
 		
 		arr.Remove(1)
 
@@ -195,7 +178,7 @@ func TestDynArray_Remove(t *testing.T) {
 	})
 
 	t.Run("Negative index", func(t *testing.T) {
-		arr := createDA([]int{1, 2, 3})
+		arr := createBDA([]int{1, 2, 3})
 
 		err := arr.Remove(-1)
 
@@ -209,7 +192,7 @@ func TestDynArray_Remove(t *testing.T) {
 	})
 
 	t.Run("Index > count", func(t *testing.T) {
-		arr := createDA([]int{1, 2, 3})
+		arr := createBDA([]int{1, 2, 3})
 
 		err := arr.Remove(4)
 
