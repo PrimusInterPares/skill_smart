@@ -27,9 +27,11 @@ func (da *DynArray[T]) MakeArray(sz int) {
   da.capacity = sz
 }
 
+// Сложность по времени: O(1) при вставке в конец (O(N) при увеличении буфера), O(N) при вставке в i-ю позицию
+// Сложность по памяти: сама вставка - O(1), но при изменении буфера и копировании массива это O(N)
 func (da *DynArray[T]) Insert(itm T, index int) (error) {
-  if err := da.validateIndex(index); err != nil {
-		return err
+  if index < 0 || index > da.count {
+		return fmt.Errorf("bad index '%d'", index)
 	}
 
 	if da.count == da.capacity {
@@ -45,10 +47,21 @@ func (da *DynArray[T]) Insert(itm T, index int) (error) {
 	return nil
 }
 
+// Сложность по времени: O(N), т.к. сдвигаем все элементы
+// Сложность по памяти: само удаление - O(1), но при изменении буфера и копировании массива это O(N)
 func (da *DynArray[T]) Remove(index int) (error) {
-  if err := da.validateIndex(index); err != nil {
-		return err
+  if index < 0 || index >= da.count {
+		return fmt.Errorf("bad index '%d'", index)
 	}
+
+	for i := index; i < da.count - 1; i++ {
+		da.array[i] = da.array[i + 1]
+	}
+
+	var dummy T
+	da.array[da.count - 1] = dummy
+
+	da.count--
 
 	if da.count * 2 < da.capacity {
 		da.decreaseBuffer()
@@ -67,9 +80,9 @@ func (da *DynArray[T]) Append(itm T) {
 }
 
 func (da *DynArray[T]) GetItem(index int) (T, error) {
-	if err := da.validateIndex(index); err != nil {
+	if index < 0 || index >= da.count {
 		var dummy T
-		return dummy, err
+		return dummy, fmt.Errorf("bad index '%d'", index)
 	}
 
 	return da.array[index], nil
@@ -89,14 +102,6 @@ func (da *DynArray[T]) decreaseBuffer() {
 	newCap := int(float64(da.capacity) / decreaseBufferRatio)
 
 	da.MakeArray(max(newCap, minimalBufferSize))
-}
-
-func (da *DynArray[T]) validateIndex(index int) error {
-	if index < 0 || index >= da.count {
-		return fmt.Errorf("bad index '%d'", index)
-	}
-
-	return nil
 }
 
 
