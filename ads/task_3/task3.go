@@ -32,6 +32,16 @@ func (da *DynArray[T]) Insert(itm T, index int) (error) {
 		return err
 	}
 
+	if da.count == da.capacity {
+		da.increaseBuffer()
+	}
+
+	for i:= da.count; i >= index; i-- {
+		da.array[i + 1] = da.array[i]
+	}
+	da.array[index] = itm
+	da.count++
+
 	return nil
 }
 
