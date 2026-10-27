@@ -276,7 +276,7 @@ func TestMultiDynArray_Append(t *testing.T) {
     if val != 42 { t.Errorf("expected 42, got %d", val) }
 	})
 
-	t.Run("triggers buffer increase", func(t *testing.T) {
+	t.Run("Triggers buffer increase", func(t *testing.T) {
     arr, err := NewMultiDynArray[int](1)
     if err != nil { t.Fatal(err) }
 
@@ -292,7 +292,7 @@ func TestMultiDynArray_Append(t *testing.T) {
     }
 	})
 
-	t.Run("wrong number of indices", func(t *testing.T) {
+	t.Run("Wrong number of indices", func(t *testing.T) {
     arr, _ := NewMultiDynArray[int](3)
 
     err := arr.Append(5, 1)
@@ -308,7 +308,7 @@ func TestMultiDynArray_Append(t *testing.T) {
 		}
 	})
 
-	t.Run("out-of-bounds navigation indices", func(t *testing.T) {
+	t.Run("Out-of-bounds navigation indices", func(t *testing.T) {
     arr, _ := NewMultiDynArray[int](3)
 
     err := arr.Append(5, 0)
@@ -316,7 +316,7 @@ func TestMultiDynArray_Append(t *testing.T) {
 		if err.Error() != "expected 2 indices, got 1" { t.Errorf("unexpected error: %v", err) }
 	})
 
-	t.Run("with string type", func(t *testing.T) {
+	t.Run("With string type", func(t *testing.T) {
     arr, err := NewMultiDynArray[string](2)
     if err != nil { t.Fatal(err) }
 
@@ -327,6 +327,28 @@ func TestMultiDynArray_Append(t *testing.T) {
 		if err != nil { t.Fatalf("unexpected error: %v",err) }
 		if val != "hello" { t.Errorf("expected 'hello', got: '%s'", val) }
 	})
+
+	t.Run("Buffer increase", func(t *testing.T) {
+    arr, _ := NewMultiDynArray[int](2)
+
+    for i := range 20 {
+	    err := arr.Append(i * 10, i)
+      if err != nil { t.Fatalf("unexpected error on iteration %d: %v", i, err) }
+    }
+
+    if arr.nodes.count != 20 {
+    	t.Errorf("expected nodes count 20, got %d", arr.nodes.count)
+    }
+    if arr.nodes.capacity < 20 {
+    	t.Errorf("nodes capacity must have increased, got %d", arr.nodes.capacity)
+    }
+
+    for i := range 20 {
+	    val, err := arr.GetItem(i, 0)
+      if err != nil { t.Fatalf("unexpected error at [%d, 0]: %v", i, err) }
+      if val != i * 10 { t.Errorf("expected %d at [%d, 0], got %d", i * 10, i, val) }
+    }
+})
 }
 
 func TestMultiDynArray_Insert(t *testing.T) {
@@ -368,6 +390,74 @@ func TestMultiDynArray_Insert(t *testing.T) {
 		val, _ := arr.GetItem(0, 1)
     if val != 20 { t.Errorf("expected 20, got %d", val) }
     })
+}
+
+func TestMultiDynArray_Remove(t *testing.T) {
+  t.Run("Remove from existing leaf", func(t *testing.T) {
+  	arr, _ := NewMultiDynArray[int](2)
+		
+    arr.Append(10, 0)
+    arr.Append(20, 0)
+    arr.Append(30, 0) // [10, 20, 30]
+
+    err := arr.Remove(0, 1)
+    if err != nil { t.Fatal(err) }
+
+    val, _ := arr.GetItem(0, 0)
+    if val != 10 { t.Errorf("expected 10, got %d", val) }
+
+		val, _ = arr.GetItem(0, 1)
+    if val != 30 { t.Errorf("expected 30, got %d", val) }
+  })
+
+  t.Run("Remove from non-existent node", func(t *testing.T) {
+  	arr, _ := NewMultiDynArray[int](2)
+    arr.Append(10, 0)
+
+    err := arr.Remove(5, 0)
+    if err == nil { t.Error("expected error for non-existent node") }
+  })
+
+  t.Run("Wrong number of indices", func(t *testing.T) {
+  	arr, _ := NewMultiDynArray[int](3)
+    arr.Append(10, 0, 0)
+
+    err := arr.Remove(0, 0)
+    if err == nil { t.Error("expected error for too few indices") }
+
+    err = arr.Remove(0, 0, 0, 0)
+    if err == nil { t.Error("expected error for too many indices") }
+  })
+
+	t.Run("Buffer decrease", func(t *testing.T) {
+  	arr, _ := NewMultiDynArray[int](2)
+
+    for i := range 40 {
+        arr.Append(i, 0)
+    }
+
+    leaf, _ := arr.nodes.GetItem(0)
+    capacityBefore := leaf.values.capacity
+
+    for i := range 30 {
+      err := arr.Remove(0, 0)
+      if err != nil { t.Fatalf("unexpected error on iteration %d: %v", i, err) }
+    }
+
+    if leaf.values.count != 10 { t.Errorf("expected count 10, got %d", leaf.values.count) }
+
+    if leaf.values.capacity >= capacityBefore {
+        t.Errorf("capacity must have decreased from %d, got %d", capacityBefore, leaf.values.capacity)
+    }
+
+    for i := range 10 {
+      val, err := arr.GetItem(0, i)
+      if err != nil { t.Fatalf("unexpected error at [0, %d]: %v", i, err) }
+
+			expected := 30 + i
+      if val != expected { t.Errorf("expected %d at [0, %d], got %d", expected, i, val)}
+    }
+	})
 }
 
 

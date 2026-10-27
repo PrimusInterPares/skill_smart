@@ -26,24 +26,17 @@ func NewBankDynArray[T any]() *BankDynArray[T] {
 func (bda *BankDynArray[T]) MakeArray(sz int) {
 	bda.operationAccount -= bda.capacity
   bda.DynArray.MakeArray(sz)
-
-	// проверка для отладки доказательства методом банков
-	// if bda.operationAccount < 0 {
-	//	panic(fmt.Sprintf("Bankrupt! Account: %d", bda.operationAccount))
-	// }
 }
 
-func (bda *BankDynArray[T]) Append(itm T) {
-	bda.DynArray.Append(itm)
+func (bda *BankDynArray[T]) Append(item T) {
+	bda.DynArray.Append(item)
 	bda.operationAccount += operationPrice
 }
 
-func (bda *BankDynArray[T]) Insert(itm T, index int) error {
-	err := bda.DynArray.Insert(itm, index)
+func (bda *BankDynArray[T]) Insert(item T, index int) error {
+	err := bda.DynArray.Insert(item, index)
 
-	if err == nil {
-		bda.operationAccount += operationPrice
-	}
+	if err == nil { bda.operationAccount += operationPrice }
 
 	return err
 }
@@ -89,68 +82,75 @@ func buildMultiDynArray[T any](depth int) *MultiDynArray[T] {
 	return node
 }
 
-// GetItem возвращает элемент. Ожидает ровно a.depth индексов.
 func (mda *MultiDynArray[T]) GetItem(indices ...int) (T, error) {
 	var dummy T
 	if len(indices) != mda.depth {
 		return dummy, fmt.Errorf("wrong number of indices: %d, expected: %d", len(indices), mda.depth)
 	}
 
-	// 1D массив
-	if mda.depth == 1 {
-		return mda.values.GetItem(indices[0])
-	}
+	if mda.depth == 1 { return mda.values.GetItem(indices[0]) }
 
-	// спускаемся к дочернему узлу
 	child, err := mda.nodes.GetItem(indices[0])
-	if err != nil {
-		return dummy, err
-	}
+	if err != nil { return dummy, err }
 
 	return child.GetItem(indices[1:]...)
 }
 
 func (mda *MultiDynArray[T]) Append(value T, indices ...int) error {
-    if len(indices) != mda.depth - 1 {
-        return fmt.Errorf("expected %d indices, got %d", mda.depth - 1, len(indices))
-    }
+  if len(indices) != mda.depth - 1 {
+  	return fmt.Errorf("expected %d indices, got %d", mda.depth - 1, len(indices))
+  }
 
-    if mda.depth == 1 {
-        mda.values.Append(value)
-
-        return nil
-    }
-
-    index := indices[0]
-
-    if index >= mda.nodes.count {
-			for mda.nodes.count <= index {
-				child := buildMultiDynArray[T](mda.depth - 1)
-        mda.nodes.Append(child)
-      }
-    }
-
-    child, _ := mda.nodes.GetItem(index)
+  if mda.depth == 1 {
+  	mda.values.Append(value)
 	
-    return child.Append(value, indices[1:]...)
+		return nil
+  }
+
+  index := indices[0]
+
+  if index >= mda.nodes.count {
+		for mda.nodes.count <= index {
+		child := buildMultiDynArray[T](mda.depth - 1)
+    mda.nodes.Append(child)
+    }
+  }
+
+  child, _ := mda.nodes.GetItem(index)
+	
+  return child.Append(value, indices[1:]...)
 }
 
 func (mda *MultiDynArray[T]) Insert(value T, indices ...int) error {
-    if len(indices) != mda.depth {
-        return fmt.Errorf("wrong number of indices: expected %d, got %d", mda.depth, len(indices))
-    }
+  if len(indices) != mda.depth {
+	  return fmt.Errorf("wrong number of indices: expected %d, got %d", mda.depth, len(indices))
+  }
 
-    if mda.depth == 1 {
-        return mda.values.Insert(value, indices[0])
-    }
+  if mda.depth == 1 { return mda.values.Insert(value, indices[0]) }
 
-    index := indices[0]
-    if index >= mda.nodes.count {
-        return fmt.Errorf("index %d is out of bounds: count is %d", index, mda.nodes.count)
-    }
+	index := indices[0]
+  if index >= mda.nodes.count {
+  	return fmt.Errorf("index %d is out of bounds: count is %d", index, mda.nodes.count)
+  }
 
-    child, _ := mda.nodes.GetItem(index)
-    return child.Insert(value, indices[1:]...)
+  child, _ := mda.nodes.GetItem(index)
+  return child.Insert(value, indices[1:]...)
+}
+
+func (mda *MultiDynArray[T]) Remove(indices ...int) error {
+  if len(indices) != mda.depth {
+  	return fmt.Errorf("wrong number of indices: expected %d, got %d", mda.depth, len(indices))
+  }
+
+  if mda.depth == 1 { return mda.values.Remove(indices[0]) }
+
+  index := indices[0]
+  if index >= mda.nodes.count {
+  	return fmt.Errorf("index %d out of bounds for Remove: count is %d", index, mda.nodes.count)
+  }
+
+  child, _ := mda.nodes.GetItem(index)
+  return child.Remove(indices[1:]...)
 }
 
 // Номер задачи из задания: 8
