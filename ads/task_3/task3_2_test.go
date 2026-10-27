@@ -206,4 +206,168 @@ func TestBankDynArray_Remove(t *testing.T) {
 	})
 }
 
+//--------------------------------------------------------------------------------------
+
+func TestMultiDynArray_NewMultiDynArray(t *testing.T) {
+	t.Run("Zero depth", func(t *testing.T) {
+		_, err := NewMultiDynArray[int](0)
+
+		if err == nil { t.Fatalf("error is expected") }
+		if err.Error() != "depth must be positive, got: 0" {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+	
+	t.Run("Negative depth", func(t *testing.T) {
+		_, err := NewMultiDynArray[int](-1)
+
+		if err == nil { t.Fatalf("error is expected") }
+
+		if err.Error() != "depth must be positive, got: -1"{
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+}
+
+func TestMultiDynArray_GetItem(t *testing.T) {
+	arr, _ := NewMultiDynArray[int](3) // 2x3x4
+
+	t.Run("0 indices provided", func(t *testing.T) {
+		_, err := arr.GetItem()
+
+		if err == nil { t.Fatalf("error is expected") }
+		if err.Error() != "wrong number of indices: 0, expected: 3" { t.Errorf("unexpected error: %v", err) }
+	})
+
+	t.Run("Less indices than needed", func(t *testing.T) {
+		_, err := arr.GetItem(1)
+
+		if err == nil { t.Fatalf("error expected") }
+		if err.Error() != "wrong number of indices: 1, expected: 3" { t.Errorf("unexpected error: %v", err) }
+	})
+
+	t.Run("Too many indices", func(t *testing.T) {
+		_, err := arr.GetItem(1, 2, 3, 4)
+
+		if err == nil { t.Fatalf("error is expected") }
+		if err.Error() != "wrong number of indices: 4, expected: 3" { t.Errorf("unexpected error: %v", err) }
+	})
+
+	t.Run("Positive case", func(t *testing.T) {
+		err := arr.Append(5, 0, 0)
+		if err != nil { t.Fatalf("unexpected error during Append: %v", err) }
+
+		value, err := arr.GetItem(0, 0, 0)
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
+		if value != 5 { t.Errorf("expected value: 5, got: %d", value) }
+	})
+}
+
+func TestMultiDynArray_Append(t *testing.T) {
+	t.Run("1D array", func(t *testing.T) {
+    arr, err := NewMultiDynArray[int](1)
+		if err != nil { t.Fatal(err) }
+
+    err = arr.Append(42)
+    if err != nil { t.Fatalf("unexpected error: %v", err) }
+
+    val, err := arr.GetItem(0)
+    if err != nil { t.Fatal(err) }
+    if val != 42 { t.Errorf("expected 42, got %d", val) }
+	})
+
+	t.Run("triggers buffer increase", func(t *testing.T) {
+    arr, err := NewMultiDynArray[int](1)
+    if err != nil { t.Fatal(err) }
+
+    for i := range 20 {
+      err := arr.Append(i)
+      if err != nil { t.Fatalf("unexpected error on iteration %d: %v", i, err) }
+    }
+
+    for i := range 20 {
+      val, err := arr.GetItem(i)
+      if err != nil { t.Fatalf("unexpected error getting item at index [0, %d]: %v",  i, err) }
+			if val != i { t.Errorf("expected %d at index [0, %d], got: %d", i, i, val) }
+    }
+	})
+
+	t.Run("wrong number of indices", func(t *testing.T) {
+    arr, _ := NewMultiDynArray[int](3)
+
+    err := arr.Append(5, 1)
+    if err == nil { t.Error("expected error") }
+		if err.Error() != "expected 2 indices, got 1" {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+    err = arr.Append(5, 1, 1, 1)
+    if err == nil { t.Error("expected error") }
+		if err.Error() != "expected 2 indices, got 3" {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("out-of-bounds navigation indices", func(t *testing.T) {
+    arr, _ := NewMultiDynArray[int](3)
+
+    err := arr.Append(5, 0)
+    if err == nil { t.Error("expected error") }
+		if err.Error() != "expected 2 indices, got 1" { t.Errorf("unexpected error: %v", err) }
+	})
+
+	t.Run("with string type", func(t *testing.T) {
+    arr, err := NewMultiDynArray[string](2)
+    if err != nil { t.Fatal(err) }
+
+    err = arr.Append("hello", 0)
+    if err != nil { t.Fatal(err) }
+
+    val, err := arr.GetItem(0, 0)
+		if err != nil { t.Fatalf("unexpected error: %v",err) }
+		if val != "hello" { t.Errorf("expected 'hello', got: '%s'", val) }
+	})
+}
+
+func TestMultiDynArray_Insert(t *testing.T) {
+  t.Run("Insert into existing leaf", func(t *testing.T) {
+		arr, _ := NewMultiDynArray[int](2)
+
+		arr.Append(10, 0)
+		arr.Append(20, 0) // [10, 20]
+
+    err := arr.Insert(99, 0, 1)
+    if err != nil { t.Fatal(err) }
+
+		// [10, 99, 20]
+    val, _ := arr.GetItem(0, 0)
+    if val != 10 { t.Errorf("expected 10, got %d", val) }
+ 
+		val, _ = arr.GetItem(0, 1)
+    if val != 99 { t.Errorf("expected 99, got %d", val) }
+ 
+    val, _ = arr.GetItem(0, 2)
+    if val != 20 { t.Errorf("expected 20, got %d", val) }
+  })
+
+  t.Run("Insert into non-existent node", func(t *testing.T) {
+  	arr, _ := NewMultiDynArray[int](2)
+    arr.Append(10, 0) // только лист [0]
+
+    err := arr.Insert(42, 5, 0)
+    if err == nil { t.Error("expected error") }
+  })
+
+  t.Run("Insert at the end the of existing leaf", func(t *testing.T) {
+  	arr, _ := NewMultiDynArray[int](2)
+    arr.Append(10, 0)
+
+    err := arr.Insert(20, 0, 1)
+    if err != nil { t.Fatal(err) }
+
+		val, _ := arr.GetItem(0, 1)
+    if val != 20 { t.Errorf("expected 20, got %d", val) }
+    })
+}
+
 
