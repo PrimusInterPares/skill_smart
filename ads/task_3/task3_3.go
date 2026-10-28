@@ -91,29 +91,14 @@ func TestDynArray_Insert(t *testing.T) {
 
 		err:= arr.Insert(100, 1)
 
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
+		if val, _ := arr.GetItem(0); val != 2 { t.Errorf("arr[0] is expected to eq 2, actual: %d", val) }
+		if val, _ := arr.GetItem(1); val != 100 { t.Errorf("arr[1] is expected to eq 100, actual: %d", val) }
 
-		if v, _ := arr.GetItem(0); v != 2 {
-			t.Errorf("arr[0] is expected to eq 2, actual: %d", v)
-		}
-
-		if v, _ := arr.GetItem(1); v != 100 {
-			t.Errorf("arr[1] is expected to eq 100, actual: %d", v)
-		}
-
-		if v, _ := arr.GetItem(2); v != 3 {
-			t.Errorf("arr[2] is expected to be 3, actual: %d", v)
-		}
-
-		if arr.capacity != 16 {
-			t.Errorf("capacity must not have been changed, current: %d", arr.capacity)
-		}
-
-		if arr.count != 6 {
-			t. Errorf("expected count: %d", 6)
-		}
+		val, _ := arr.GetItem(2);
+		if val != 3 { t.Errorf("arr[2] is expected to be 3, actual: %d", val) }
+		if arr.capacity != 16 { t.Errorf("capacity must not have been changed, current: %d", arr.capacity) }
+		if arr.count != 6 { t. Errorf("expected count: %d", 6) }
 	})
 
 	t.Run("Buffer changes", func(t *testing.T) {
@@ -121,29 +106,12 @@ func TestDynArray_Insert(t *testing.T) {
 
 		err := arr.Insert(100, 12)
 
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		if v, _ := arr.GetItem(11); v != 12 {
-			t.Errorf("arr[11] is expected to eq 12, actual: %d", v)
-		}
-
-		if v, _ := arr.GetItem(12); v != 100 {
-			t.Errorf("arr[12] is expected to eq 100, actual: %d", v)
-		}
-
-		if v, _ := arr.GetItem(13); v != 13 {
-			t.Errorf("arr[13] is expected to be 13, actual: %d", v)
-		}
-
-		if arr.capacity == 16 {
-			t.Errorf("capacity must have been changed to %d, current: %d", 16 * increaseBufferRatio, arr.capacity)
-		}
-
-		if arr.count != 17 {
-			t. Errorf("expected count: %d, current: %d", 17, arr.count)
-		}
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
+		if val, _ := arr.GetItem(11); val != 12 { t.Errorf("arr[11] is expected to eq 12, actual: %d", val) }
+		if val, _ := arr.GetItem(12); val != 100 { t.Errorf("arr[12] is expected to eq 100, actual: %d", val) }
+		if val, _ := arr.GetItem(13); val != 13 { t.Errorf("arr[13] is expected to be 13, actual: %d", val) }
+		if arr.capacity == 16 { t.Errorf("capacity must have been changed to %d, current: %d", 16 * increaseBufferRatio, arr.capacity) }
+		if arr.count != 17 { t. Errorf("expected count: %d, current: %d", 17, arr.count) }
 	})
 
 	t.Run("Negative index", func(t *testing.T) {
