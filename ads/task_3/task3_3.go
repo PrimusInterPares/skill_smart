@@ -105,8 +105,8 @@ func TestDynArray_Insert(t *testing.T) {
 		arr := createDA(makeRange(1, 16))
 
 		err := arr.Insert(100, 12)
-
 		if err != nil { t.Fatalf("unexpected error: %v", err) }
+
 		if val, _ := arr.GetItem(11); val != 12 { t.Errorf("arr[11] is expected to eq 12, actual: %d", val) }
 		if val, _ := arr.GetItem(12); val != 100 { t.Errorf("arr[12] is expected to eq 100, actual: %d", val) }
 		if val, _ := arr.GetItem(13); val != 13 { t.Errorf("arr[13] is expected to be 13, actual: %d", val) }
@@ -119,13 +119,8 @@ func TestDynArray_Insert(t *testing.T) {
 
 		err := arr.Insert(100, -1)
 
-		if err == nil {
-			t.Errorf("must be bad index error")
-		}
-
-		if err.Error() != "bad index '-1'" {
-			t.Errorf("unexpected error")
-		}
+		if err == nil { t.Errorf("must be bad index error") }
+		if err.Error() != "bad index '-1'" { t.Errorf("unexpected error: %v", err) }
 	})
 
 	t.Run("Index > count", func(t *testing.T) {
@@ -133,13 +128,8 @@ func TestDynArray_Insert(t *testing.T) {
 
 		err := arr.Insert(100, 4)
 
-		if err == nil {
-			t.Errorf("must be bad index error")
-		}
-
-		if err.Error() != "bad index '4'" {
-			t.Errorf("unexpected error")
-		}
+		if err == nil { t.Errorf("must be bad index error") }
+		if err.Error() != "bad index '4'" { t.Errorf("unexpected error: %v", err) }
 	})
 
 	t.Run("Index == count", func(t *testing.T) {
@@ -147,34 +137,23 @@ func TestDynArray_Insert(t *testing.T) {
 
 		err := arr.Insert(100, 3)
 
-		if v, _ := arr.GetItem(3); v != 100 {
-			t.Errorf("value 100 must be added to position 3")
-		}
-
-		if arr.count != 4 {
-			t.Errorf("count must eq %d, current: %d", 4, arr.count)
-		}
-
-		if err != nil {
-			t.Errorf("unexpected error")
-		}
+		if val, _ := arr.GetItem(3); val != 100 { t.Errorf("value 100 must be added to position 3") }
+		if arr.count != 4 { t.Errorf("count must eq %d, current: %d", 4, arr.count) }
+		if err != nil { t.Errorf("unexpected error: %v", err) }
 	})
 
-	t.Run("One-element array, insert in tail", func(t *testing.T) {
-		arr := createDA([]int{1})
+	t.Run("Capacity 1, insert in tail", func(t *testing.T) {
+		arr := &DynArray[int]{}
+		arr.MakeArray(1)
+		arr.array[0] = 1
+		arr.count = 1
 
-		newLastPosition := arr.count
-		err := arr.Insert(9, arr.count)
-
-		if err != nil { t.Fatalf("unexpected error: %v", err)}
-
-		newLast, err := arr.GetItem(newLastPosition)
+		err := arr.Insert(9, 1)
 		if err != nil { t.Fatalf("unexpected error: %v", err) }
-		if newLast!= 9 { t.Errorf("expected arr[1] to eq 9, got %d", newLast)}
-		first, err := arr.GetItem(0)
-		if err != nil { t.Fatalf("unexpected error: %v", err)}
-		if first != 1 { t.Errorf("expected arr[0] to eq, got %d", first) }
-		if arr.count != 2 { t.Errorf("unexpected count: %d", arr.count)}
+
+		if val, _ := arr.GetItem(0); val != 1 { t.Errorf("expected arr[0] to be 1, got %d", val) }
+		if val, _ := arr.GetItem(1); val != 9 { t.Errorf("expected arr[1] to be 9, got %d", val) }
+		if arr.count != 2 { t.Errorf("expected count 2, got %d", arr.count) }
 	})
 }
 
@@ -183,30 +162,13 @@ func TestDynArray_Remove(t *testing.T) {
 		arr := createDA([]int{1, 2, 3})
 
 		err := arr.Remove(1)
+		if err != nil {			t.Fatalf("unexpected error: %v", err)		}
 
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		if v, _ := arr.GetItem(0); v != 1 {
-			t.Errorf("arr[0] is expected to eq 1, actual: %d", v)
-		}
-
-		if v, _ := arr.GetItem(1); v != 3 {
-			t.Errorf("arr[1] is expected to eq 3, actual: %d", v)
-		}
-
-		if _, err := arr.GetItem(2); err == nil {
-			t.Errorf("must be bad index error")
-		}
-
-		if arr.capacity != 16 {
-			t.Errorf("capacity must not have been changed, current: %d", arr.capacity)
-		}
-
-		if arr.count != 2 {
-			t. Errorf("expected count: %d, current: %d", 2, arr.count)
-		}
+		if val, _ := arr.GetItem(0); val != 1 { t.Errorf("arr[0] is expected to eq 1, actual: %d", val) }
+		if val, _ := arr.GetItem(1); val != 3 { t.Errorf("arr[1] is expected to eq 3, actual: %d", val) }
+		if _, err := arr.GetItem(2); err == nil { t.Errorf("must be bad index error") }
+		if arr.capacity != 16 { t.Errorf("capacity must not have been changed, current: %d", arr.capacity) }
+		if arr.count != 2 { t. Errorf("expected count: %d, current: %d", 2, arr.count) }
 	})
 
 	t.Run("Buffer changes", func(t *testing.T) {
@@ -235,18 +197,10 @@ func TestDynArray_Remove(t *testing.T) {
 		arr := createDA(makeRange(1, 8))
 		
 		err := arr.Remove(1)
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
 
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
-		}
-
-		if arr.capacity < minimalBufferSize {
-			t.Errorf("capacity must be at least %d, current: %d", minimalBufferSize, arr.capacity)
-		}
-
-		if arr.count != 7 {
-			t. Errorf("expected count: %d, current: %d", 7, arr.count)
-		}
+		if arr.capacity < minimalBufferSize { t.Errorf("capacity must be at least %d, current: %d", minimalBufferSize, arr.capacity) }
+		if arr.count != 7 { t. Errorf("expected count: %d, current: %d", 7, arr.count) }
 	})
 
 	t.Run("Negative index", func(t *testing.T) {
@@ -254,13 +208,8 @@ func TestDynArray_Remove(t *testing.T) {
 
 		err := arr.Remove(-1)
 
-		if err == nil {
-			t.Errorf("must be bad index error")
-		}
-
-		if err.Error() != "bad index '-1'" {
-			t.Errorf("unexpected error")
-		}
+		if err == nil { t.Errorf("must be bad index error") }
+		if err.Error() != "bad index '-1'" { t.Errorf("unexpected error: %v", err) }
 	})
 
 	t.Run("Index > count", func(t *testing.T) {
@@ -268,13 +217,8 @@ func TestDynArray_Remove(t *testing.T) {
 
 		err := arr.Remove(4)
 
-		if err == nil {
-			t.Errorf("must be bad index error")
-		}
-
-		if err.Error() != "bad index '4'" {
-			t.Errorf("unexpected error")
-		}
+		if err == nil { t.Errorf("must be bad index error") }
+		if err.Error() != "bad index '4'" { t.Errorf("unexpected error: %v", err) }
 	})
 }
 

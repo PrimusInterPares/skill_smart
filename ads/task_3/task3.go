@@ -38,7 +38,7 @@ func (da *DynArray[T]) Insert(item T, index int) (error) {
 		da.increaseBuffer()
 	}
 
-	for i:= da.count; i >= index; i-- {
+	for i:= da.count - 1; i >= index; i-- {
 		da.array[i + 1] = da.array[i]
 	}
 	da.array[index] = item
