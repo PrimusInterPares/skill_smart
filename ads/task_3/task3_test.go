@@ -24,11 +24,65 @@ func createDA[T any](items []T) *DynArray[T] {
 func makeRange(minVal, maxVal int) []int {
 	r := make([]int, maxVal - minVal + 1)
 	
-	for i := range r {
-		r[i] = minVal + i
-	}
+	for i := range r { r[i] = minVal + i }
 
 	return r
+}
+
+func TestDynArray_Append(t *testing.T) {
+	t.Run("One-element array", func(t *testing.T){
+		arr := createDA([]int{1})
+
+		arr.Append(4)
+
+		first, err := arr.GetItem(0)
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
+		if first != 1 { t.Errorf("expected arr[0] to eq 1, got %d", first) }
+
+		second, err := arr.GetItem(1)
+		if err != nil { t.Fatalf("unexpected error: %v", err)}
+		if second != 4 { t.Errorf("expected arr[1] to eq 4, got %d", second) }
+	})
+
+	t.Run("Empty array", func(t *testing.T) {
+		arr := createDA([]int{})
+
+		arr.Append(4)
+
+		first, err := arr.GetItem(0)
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
+		if first != 4 { t.Errorf("expected arr[0] to eq 4, got %d", first) }
+	})
+
+	t.Run("Trigger buffer increase", func(t *testing.T) {
+		arr := createDA([]int{1})
+
+		for i := 2; i <= 17; i++ { arr.Append(i) }
+		
+		if arr.count != 17 { t.Errorf("expected count 17, got %d", arr.count)}
+		if arr.capacity != 32 { t.Errorf("expected capacity to increase to 32, got %d", arr.capacity) }
+		
+		for i := range 17 {
+			val, err := arr.GetItem(i)
+			if err != nil { t.Fatalf("unexpected error at index %d: %v", i, err) }
+			if val != i + 1 { t.Errorf("expected arr[%d] to be %d, got %d", i, i + 1, val) }
+		}
+	})
+
+	t.Run("Append to array initialized with Init", func(t *testing.T) {
+		arr := &DynArray[int]{}
+		arr.Init()
+		
+		if arr.capacity != minimalBufferSize {
+			t.Fatalf("expected initial capacity %d, got %d", minimalBufferSize, arr.capacity)
+		}
+		
+		arr.Append(42)
+		first, err := arr.GetItem(0)
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
+		if first != 42 { t.Errorf("expected arr[0] to be 42, got %d", first) }
+		if arr.count != 1 { t.Errorf("expected count 1, got %d", arr.count) }
+	})
 }
 
 func TestDynArray_Insert(t *testing.T) {
@@ -136,6 +190,23 @@ func TestDynArray_Insert(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error")
 		}
+	})
+
+	t.Run("One-element array, insert in tail", func(t *testing.T) {
+		arr := createDA([]int{1})
+
+		newLastPosition := arr.count
+		err := arr.Insert(9, arr.count)
+
+		if err != nil { t.Fatalf("unexpected error: %v", err)}
+
+		newLast, err := arr.GetItem(newLastPosition)
+		if err != nil { t.Fatalf("unexpected error: %v", err) }
+		if newLast!= 9 { t.Errorf("expected arr[1] to eq 9, got %d", newLast)}
+		first, err := arr.GetItem(0)
+		if err != nil { t.Fatalf("unexpected error: %v", err)}
+		if first != 1 { t.Errorf("expected arr[0] to eq, got %d", first) }
+		if arr.count != 2 { t.Errorf("unexpected count: %d", arr.count)}
 	})
 }
 

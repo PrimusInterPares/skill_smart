@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+//	"os"
 	"fmt"
 )
 
@@ -27,9 +27,9 @@ func (da *DynArray[T]) MakeArray(sz int) {
   da.capacity = sz
 }
 
-// Сложность по времени: O(1) при вставке в конец (O(N) при увеличении буфера), O(N) при вставке в i-ю позицию
-// Сложность по памяти: сама вставка - O(1), но при изменении буфера и копировании массива это O(N)
-func (da *DynArray[T]) Insert(itm T, index int) (error) {
+// Time complexity: O(1) when iserted to tail (O(N) if bufer is increased), O(N) while iserting in i position
+// Memory complexity: insert itself - O(1), but if buffer is resized array copy takes O(N)
+func (da *DynArray[T]) Insert(item T, index int) (error) {
   if index < 0 || index > da.count {
 		return fmt.Errorf("bad index '%d'", index)
 	}
@@ -41,14 +41,14 @@ func (da *DynArray[T]) Insert(itm T, index int) (error) {
 	for i:= da.count; i >= index; i-- {
 		da.array[i + 1] = da.array[i]
 	}
-	da.array[index] = itm
+	da.array[index] = item
 	da.count++
 
 	return nil
 }
 
-// Сложность по времени: O(N), т.к. сдвигаем все элементы
-// Сложность по памяти: само удаление - O(1), но при изменении буфера и копировании массива это O(N)
+// Time complexity: O(N) as we move i elements
+// Memory complexity: remove itself - O(1), but if buffer is resized array copy takes O(N)
 func (da *DynArray[T]) Remove(index int) (error) {
   if index < 0 || index >= da.count {
 		return fmt.Errorf("bad index '%d'", index)
@@ -70,12 +70,12 @@ func (da *DynArray[T]) Remove(index int) (error) {
 	return nil
 }
 
-func (da *DynArray[T]) Append(itm T) {
+func (da *DynArray[T]) Append(item T) {
 	if da.count == da.capacity {
 		da.increaseBuffer()
 	}
 	
-	da.array[da.count] = itm
+	da.array[da.count] = item
 	da.count++
 }
 
