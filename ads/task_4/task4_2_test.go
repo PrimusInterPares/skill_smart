@@ -6,7 +6,61 @@ import(
 	"testing"
 )
 
-func TestStack_MinVal(t *testing.T) {
+func Test_IsStringBalanced(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"Empty string", "", true},
+		{"Simple valid", "()", true},
+		{"Nested valid", "((()))", true},
+		{"Complex valid", "(()((())()))", true},
+		
+		{"Single closing", ")", false},
+		{"Single opening", "(", false},
+		{"Unclosed open brackets", "((()", false},
+		{"Extra closing at the end", "())", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsStringBalanced(tt.input)
+			
+			if result != tt.expected { t.Errorf("`%q` balance is %v, expected %v", tt.input, result, tt.expected) }
+		})
+	}
+}
+
+func Test_IsStringBalanced2(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"Empty string", "", true},
+		{"Simple valid", "()[]{}", true},
+		{"Nested valid", "{[()]}", true},
+		{"Complex valid", "[()]{}{[()()]()}", true},
+		
+		{"Single closing", ")", false},
+		{"Single opening", "[", false},
+		{"Wrong closing type", "(]", false},
+		{"Interleaved brackets", "([)]", false},
+		{"Unclosed open brackets", "({[]", false},
+		{"Extra closing at the end", "()[]{}}", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsStringBalanced2(tt.input)
+			
+			if result != tt.expected { t.Errorf("`%q` balance is %v, expected %v", tt.input, result, tt.expected) }
+		})
+	}
+}
+
+func TestStack_Min(t *testing.T) {
 	t.Run("In an empty stack", func(t *testing.T) {
 		stack := &Stack[int]{}
 
@@ -132,6 +186,10 @@ func TestStack_Avg(t *testing.T) {
 		// (1.5 + 2.5) / 2 = 2.0
 		if !floatEquals(avg, 2.0) { t.Errorf("Expected 2.0, got %f", avg) }
 	})
+}
+
+func Test_PostfixCalc(t *testing.T) {
+
 }
 
 

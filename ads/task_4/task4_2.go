@@ -3,21 +3,57 @@ package main
 // Порядковый номер задания на курсе: 3
 // Номер задачи из задания: 4
 // Краткое название: функция, определяющая сбалансированность скобок `(` и `)` в строке
-/*func isStringBalanced(s string) bool {
-	st := &Stack[rune]{}
-	st.Push(string[0])
+func IsStringBalanced(s string) bool {
+	st := &StackSlice[rune]{}
 
-	for _, sym := range s {
-		st.Push()
+	for _, char := range s {
+		switch char {
+		case '(':
+			st.Push(char)
+		case ')':
+			if st.Size() == 0 { return false }
+			
+			_, _ =st.Pop()
+		}
 	}
 
-	return false
-}*/
+	return st.Size() == 0
+}
 
 // Номер задачи из задания: 5
 // Краткое название: функция, определяющая сбалансированность скобок `(`, `)`, `{`, `}`, `[` и `]` в строке
-func isStringBalanced2(s string) bool {
-	return false
+func IsStringBalanced2(s string) bool {
+	st := &StackSlice[rune]{}
+
+	for _, char := range s {
+		switch char {
+		case '(', '[', '{':
+			st.Push(char)
+		case ')':
+			if st.Size() == 0 { return false }
+			
+			head, _ := st.Peek()
+			if head != '(' { return false }
+
+			_, _ = st.Pop()
+		case ']':
+			if st.Size() == 0 { return false }
+			
+			head, _ := st.Peek()
+			if head != '[' { return false }
+			
+			_, _ = st.Pop()
+		case '}':
+			if st.Size() == 0 { return false }
+			
+			head, _ := st.Peek()
+			if head != '{' { return false }
+			
+			_, _ = st.Pop()
+		}
+	}
+
+	return st.Size() == 0
 }
 
 // Номер задачи из задания: 6
@@ -54,7 +90,7 @@ func toFloat64(v any) float64 {
 	case float64:
 		return val
 	default:
-		return 0 // Or panic, depending on strictness
+		return 0
 	}
 }
 
