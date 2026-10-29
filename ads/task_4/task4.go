@@ -15,6 +15,11 @@ type node[T any] struct {
 type Stack[T any] struct {
 	head *node[T]
 	size int
+
+	less func(a, b T) bool
+	mins []T
+
+	sum float64
 }
 
 func (st *Stack[T]) Size() (int) {
@@ -42,6 +47,12 @@ func (st *Stack[T]) Pop() (T, error) {
 	st.head = st.head.next
 	st.size--
 
+	// For Min()
+	if len(st.mins) > 0 { st.mins = st.mins[:len(st.mins) - 1] }
+
+	// For Avg()
+	st.sum -= toFloat64(result)
+
   return result, nil
 }
 
@@ -50,6 +61,19 @@ func (st *Stack[T]) Pop() (T, error) {
 func (st *Stack[T]) Push(item T) {
 	st.head = &node[T]{value: item, next: st.head}
 	st.size++
+
+	// For Min()
+	if st.less != nil {
+		lastIndex := len(st.mins) - 1
+		if len(st.mins) == 0 || st.less(item, st.mins[lastIndex]) {
+			st.mins = append(st.mins, item)
+		} else {
+			st.mins = append(st.mins, st.mins[lastIndex])
+		}
+	}
+
+	// For Avg()
+	st.sum += toFloat64(item)
 }
 
 //--------------------------------------------------------------------------------------
