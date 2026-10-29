@@ -7,15 +7,62 @@ import (
 
 var ErrEmptyStack = errors.New("stack is empty")
 
-type Stack[T any] struct {
-	items []T
+type node[T any] struct {
+	next *node[T]
+	value T
 }
 
-func (st *Stack[T]) Size() int {
-	return len(st.items)
+type Stack[T any] struct {
+	head *node[T]
+	size int
+}
+
+func (st *Stack[T]) Size() (int) {
+   return st.size
 }
 
 func (st *Stack[T]) Peek() (T, error) {
+  var result T
+
+	if st.Size() == 0 { return result, ErrEmptyStack }
+
+	result = st.head.value
+
+  return result, nil
+}
+
+// Time complexity: O(1)
+// Memory complexity: O(1)
+func (st *Stack[T]) Pop() (T, error) {
+  var result T
+
+	if st.Size() == 0 { return result, ErrEmptyStack }
+
+	result = st.head.value
+	st.head = st.head.next
+	st.size--
+
+  return result, nil
+}
+
+// Time complexity: O(1)
+// Memory complexity: O(1)
+func (st *Stack[T]) Push(item T) {
+	st.head = &node[T]{value: item, next: st.head}
+	st.size++
+}
+
+//--------------------------------------------------------------------------------------
+
+type StackSlice[T any] struct {
+	items []T
+}
+
+func (st *StackSlice[T]) Size() int {
+	return len(st.items)
+}
+
+func (st *StackSlice[T]) Peek() (T, error) {
   var result T
 
 	if len(st.items) == 0 { return result, ErrEmptyStack }
@@ -27,7 +74,7 @@ func (st *Stack[T]) Peek() (T, error) {
 
 // Time complexity: O()
 // Memory complexity: O()
-func (st *Stack[T]) Pop() (T, error) {
+func (st *StackSlice[T]) Pop() (T, error) {
   var result T
 
 	if len(st.items) == 0 { return result, ErrEmptyStack }
@@ -56,7 +103,7 @@ func (st *Stack[T]) Pop() (T, error) {
 
 // Time complexity: O(1)
 // Memory complexity: O(1)
-func (st *Stack[T]) Push(item T) {
+func (st *StackSlice[T]) Push(item T) {
 	st.items = append(st.items, item)
 }
 

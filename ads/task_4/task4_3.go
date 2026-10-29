@@ -89,79 +89,6 @@ func TestStack_Pop(t *testing.T) {
     if stack.Size() != 0 { t.Errorf("Size must be 0") }
 	})
 
-	t.Run("Zero obj for Garbage Collector", func(t *testing.T) {
-    type Big struct { data [1024]byte }
-    stack := &Stack[*Big]{}
-
-		item := &Big{}
-		item.data[0] = 42
-    stack.Push(item)
-    stack.Pop()
-
-		if cap(stack.items) == 0 { t.Skip("No backing array to check") }
-
-    type sliceHeader struct {
-			Data unsafe.Pointer
-			Len int
-			Cap int
-		}
-
-		// Исходный срез: len = 0, cap = 1, backing array = [nil]
-		//                                       ^
-		//                                      здесь был item, обнулённый плосле Pop
-		header:= (*sliceHeader)(unsafe.Pointer(&stack.items))
-		newHeader := sliceHeader{
-    	Data: header.Data,
-      Len:  header.Cap, // 1
-      Cap:  header.Cap, // 1
-		}
-
-		// *(*TargetType)(unsafe.Pointer(&source)) - Возьми адрес source, интерпретируй его как указатель на TargetType, и разыменуй — получи значение типа TargetType.
-		//
-		// (*[]*Big)(...) интерпретирует ... как указатель на slice []*Big,
-		// *(...) разыменовывает ..., возвращая сам slice []*Big
-		newSlice := *(*[]*Big)(unsafe.Pointer(&newHeader))
-
-    // Проверяем, что слот на позиции 0 был обнулен
-    if newSlice[0] != nil {
-    	t.Errorf("Popped slot must be nil to allow GC collection, got %v", newSlice[0])
-    }
-	})
-	
-	t.Run("No shrink when cap <= 1024", func(t *testing.T) {
-    stack := &Stack[int]{}
-
-    for i := range 500 { stack.Push(i) }
-
-		initialCap := cap(stack.items)
-    for range 490 { stack.Pop() } // len < cap/4
-
-		if cap(stack.items) != initialCap { t.Errorf("Small stack must not shrink") }
-  })
-
-  t.Run("Shrink when len < cap/4 and cap > 1024", func(t *testing.T) {
-    stack := &Stack[int]{}
-
-    for i := range 2000 { stack.Push(i) } // cap >= 2000
-    for range 1900 { stack.Pop() }   // len=100, cap/4=500
-
-		if cap(stack.items) >= 2000 { t.Errorf("Stack must shrink, got cap=%d", cap(stack.items)) }
-    if stack.Size() != 100 { t.Errorf("Data must be preserved after shrink") }
-  })
-
-  t.Run("No shrink at exact boundary len == cap/4", func(t *testing.T) {
-		stack := &Stack[int]{}
-
-		for i := range 2000 { stack.Push(i) }
-
-		// Подгоняем len ровно к cap/4
-    for len(stack.items) > cap(stack.items) / 4 + 1 { stack.Pop() }
-
-		capBefore := cap(stack.items)
-    stack.Pop() // теперь len == cap/4
-
-		if cap(stack.items) != capBefore { t.Errorf("At boundary len == cap / 4 shrink must NOT trigger") }
-  })
 }
 
 func TestStack_Push(t *testing.T) {
@@ -218,6 +145,81 @@ func TestStack_AnyTypes(t *testing.T) {
 	item, err := st.Pop()
   if err != nil { t.Fatalf("unexpected error: %v", err) }
 	if f, ok := item.(float64); !ok || f != 3.14 { t.Errorf("Expected 3.14, got %v", item) }
+}
+
+func TestStackSlice(t *testing.T) {
+	t.Run("Zero obj for Garbage Collector", func(t *testing.T) {
+    type Big struct { data [1024]byte }
+    stack := &StackSlice[*Big]{}
+
+		item := &Big{}
+		item.data[0] = 42
+    stack.Push(item)
+    stack.Pop()
+
+		if cap(stack.items) == 0 { t.Skip("No backing array to check") }
+
+    type sliceHeader struct {
+			Data unsafe.Pointer
+			Len int
+			Cap int
+		}
+
+		// Исходный slice: len = 0, cap = 1, backing array = [nil]
+		//                                       ^
+		//                                      здесь был item, обнулённый плосле Pop
+		header:= (*sliceHeader)(unsafe.Pointer(&stack.items))
+		newHeader := sliceHeader{
+    	Data: header.Data,
+      Len:  header.Cap, // 1
+      Cap:  header.Cap, // 1
+		}
+
+		// *(*TargetType)(unsafe.Pointer(&source)) - Возьми адрес source, интерпретируй его как указатель на TargetType,
+		// и разыменуй — получи значение типа TargetType.
+		//
+		// (*[]*Big)(...) интерпретирует ... как указатель на slice []*Big,
+		// *(...) разыменовывает ..., возвращая сам slice []*Big
+		newSlice := *(*[]*Big)(unsafe.Pointer(&newHeader))
+
+    // Проверяем, что элемент на позиции 0 был обнулен
+    if newSlice[0] != nil { t.Errorf("Popped slot must be nil to allow GC collection, got %v", newSlice[0]) }
+	})
+	
+	t.Run("No shrink when cap <= 1024", func(t *testing.T) {
+    stack := &StackSlice[int]{}
+
+    for i := range 500 { stack.Push(i) }
+
+		initialCap := cap(stack.items)
+    for range 490 { stack.Pop() } // len < cap/4
+
+		if cap(stack.items) != initialCap { t.Errorf("Small stack must not shrink") }
+  })
+
+  t.Run("Shrink when len < cap/4 and cap > 1024", func(t *testing.T) {
+    stack := &StackSlice[int]{}
+
+    for i := range 2000 { stack.Push(i) } // cap >= 2000
+    for range 1900 { stack.Pop() }   // len=100, cap/4=500
+
+		if cap(stack.items) >= 2000 { t.Errorf("Stack must shrink, got cap=%d", cap(stack.items)) }
+    if stack.Size() != 100 { t.Errorf("Data must be preserved after shrink") }
+  })
+
+  t.Run("No shrink at exact boundary len == cap/4", func(t *testing.T) {
+		stack := &StackSlice[int]{}
+
+		for i := range 2000 { stack.Push(i) }
+
+		// Подгоняем len ровно к cap/4
+    for len(stack.items) > cap(stack.items) / 4 + 1 { stack.Pop() }
+
+		capBefore := cap(stack.items)
+    stack.Pop() // теперь len == cap/4
+
+		if cap(stack.items) != capBefore { t.Errorf("At boundary len == cap / 4 shrink must NOT trigger") }
+  })
 }
 
 
