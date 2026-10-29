@@ -206,6 +206,18 @@ func TestStack_LIFO(t *testing.T) {
   }
 }
 
+func TestStack_AnyTypes(t *testing.T) {
+	st := &Stack[any]{}
+	
+	st.Push(42)
+  st.Push("hello")
+  st.Push(3.14)
+	
+	if st.Size() != 3 { t.Errorf("Expected size 3, got %d", st.Size()) }
 
+	item, err := st.Pop()
+  if err != nil { t.Fatalf("unexpected error: %v", err) }
+	if f, ok := item.(float64); !ok || f != 3.14 { t.Errorf("Expected 3.14, got %v", item) }
+}
 
 
