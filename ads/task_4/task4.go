@@ -131,3 +131,5 @@ func (st *StackSlice[T]) Pop() (T, error) {
 func (st *StackSlice[T]) Push(item T) {
 	st.items = append(st.items, item)
 }
+
+
