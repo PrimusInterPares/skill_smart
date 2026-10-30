@@ -11,9 +11,11 @@ func IsStringBalanced(s string) bool {
 		case '(':
 			st.Push(char)
 		case ')':
-			if st.Size() == 0 { return false }
-			
-			_, _ =st.Pop()
+			if st.Size() == 0 {
+				return false
+			}
+
+			_, _ = st.Pop()
 		}
 	}
 
@@ -30,25 +32,37 @@ func IsStringBalanced2(s string) bool {
 		case '(', '[', '{':
 			st.Push(char)
 		case ')':
-			if st.Size() == 0 { return false }
-			
+			if st.Size() == 0 {
+				return false
+			}
+
 			head, _ := st.Peek()
-			if head != '(' { return false }
+			if head != '(' {
+				return false
+			}
 
 			_, _ = st.Pop()
 		case ']':
-			if st.Size() == 0 { return false }
-			
+			if st.Size() == 0 {
+				return false
+			}
+
 			head, _ := st.Peek()
-			if head != '[' { return false }
-			
+			if head != '[' {
+				return false
+			}
+
 			_, _ = st.Pop()
 		case '}':
-			if st.Size() == 0 { return false }
-			
+			if st.Size() == 0 {
+				return false
+			}
+
 			head, _ := st.Peek()
-			if head != '{' { return false }
-			
+			if head != '{' {
+				return false
+			}
+
 			_, _ = st.Pop()
 		}
 	}
@@ -60,9 +74,11 @@ func IsStringBalanced2(s string) bool {
 // Краткое название: функция, возвращающая минимальное значение в стеке за O(1)
 func (st *Stack[T]) Min() (T, error) {
 	var zero T
-	if len(st.mins) == 0 { return zero, ErrEmptyStack }
+	if len(st.mins) == 0 {
+		return zero, ErrEmptyStack
+	}
 
-	return st.mins[len(st.mins) - 1], nil
+	return st.mins[len(st.mins)-1], nil
 }
 
 func (st *Stack[T]) SetLess(less func(a, b T) bool) {
@@ -72,7 +88,9 @@ func (st *Stack[T]) SetLess(less func(a, b T) bool) {
 // Номер задачи из задания: 7
 // Краткое название: функция, возвращающая среднее значение всех элементов в стеке за O(1)
 func (st *Stack[T]) Avg() (float64, error) {
-	if st.Size() == 0 { return 0, ErrEmptyStack }
+	if st.Size() == 0 {
+		return 0, ErrEmptyStack
+	}
 
 	return st.sum / float64(st.Size()), nil
 }

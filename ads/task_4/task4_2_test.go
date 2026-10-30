@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"errors"
 	"math"
 	"testing"
@@ -16,7 +16,7 @@ func Test_IsStringBalanced(t *testing.T) {
 		{"Simple valid", "()", true},
 		{"Nested valid", "((()))", true},
 		{"Complex valid", "(()((())()))", true},
-		
+
 		{"Single closing", ")", false},
 		{"Single opening", "(", false},
 		{"Unclosed open brackets", "((()", false},
@@ -26,8 +26,10 @@ func Test_IsStringBalanced(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := IsStringBalanced(tt.input)
-			
-			if result != tt.expected { t.Errorf("`%q` balance is %v, expected %v", tt.input, result, tt.expected) }
+
+			if result != tt.expected {
+				t.Errorf("`%q` balance is %v, expected %v", tt.input, result, tt.expected)
+			}
 		})
 	}
 }
@@ -139,7 +141,7 @@ func TestStack_Avg(t *testing.T) {
 
 		avg, err := st.Avg()
 		if err != nil { t.Fatalf("Unexpected error: %v", err) }
-		// (10 + 20 + 30) / 3 = 20
+		//nolint:gocritic // (10 + 20 + 30) / 3 = 20
 		if !floatEquals(avg, 20.0) { t.Errorf("Expected 20.0, got %f", avg) }
 	})
 
@@ -183,7 +185,7 @@ func TestStack_Avg(t *testing.T) {
 
 		avg, err := st.Avg()
 		if err != nil { t.Fatalf("Unexpected error: %v", err) }
-		// (1.5 + 2.5) / 2 = 2.0
+		//nolint:gocritic // (1.5 + 2.5) / 2 = 2.0
 		if !floatEquals(avg, 2.0) { t.Errorf("Expected 2.0, got %f", avg) }
 	})
 }
