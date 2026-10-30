@@ -96,8 +96,8 @@ func (st *StackSlice[T]) Peek() (T, error) {
   return result, nil
 }
 
-// Time complexity: O()
-// Memory complexity: O()
+// Time complexity: O(1) - average case, O(N) - if reallocation happens
+// Memory complexity: O(1) - average case, O(N) - if reallocation happens
 func (st *StackSlice[T]) Pop() (T, error) {
   var result T
 
@@ -110,13 +110,13 @@ func (st *StackSlice[T]) Pop() (T, error) {
 	st.items[topIndex] = zero // allow GC to collect it
 	st.items = st.items[:topIndex]
 	
-	// Backing array must be resized 'manually'
+	// Backing array must be resized 'manually'.
 	// This code is needed if:
-	// 1. there are harsh RAM limits
-	// 2. work with the stack will have peaks (stack raises to millions of elements and drops to almost empty)
+	// 1. there are harsh RAM limits,
+	// 2. work with the stack will have peaks (stack raises to millions of elements and drops to almost empty).
 	//
-	// 1/4 is choosen to avoid `thrashing`: with 1/2 close Pop and Push will trigger expensive array copy to frequently
-	// 1024 is choosen because for little stacks hanging RAM is cheaper than CPU
+	// 1/4 is choosen to avoid `thrashing`: with 1/2 close Pop and Push will trigger expensive array copy too frequently.
+	// 1024 is choosen because hanging RAM is cheaper for little stacks than CPU.
 	stackCap := cap(st.items)
 	if len(st.items) < stackCap / 4 && stackCap > 1024 {
 	  st.items = append(make([]T, 0, stackCap / 2), st.items...)
