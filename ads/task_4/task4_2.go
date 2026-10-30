@@ -77,7 +77,7 @@ func IsStringBalanced2(s string) bool {
 // Номер задачи из задания: 6
 // Краткое название: функция, возвращающая минимальное значение в стеке за O(1)
 // Time complexity: O(1)
-// Memory complexity: O(1)
+// Memory complexity: O(N)
 func (st *Stack[T]) Min() (T, error) {
 	var zero T
 	if len(st.mins) == 0 {
