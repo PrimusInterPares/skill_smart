@@ -5,7 +5,6 @@ import (
 	"os"
 )
 
-var _ = os.Args
 var ErrEmptyStack = errors.New("stack is empty")
 
 type node[T any] struct {
@@ -73,6 +72,23 @@ func (st *Stack[T]) Push(item T) {
 	}
 	// For Avg()
 	st.sum += toFloat64(item)
+}
+
+func toFloat64(v any) float64 {
+	switch val := v.(type) {
+	case int:
+		return float64(val)
+	case int32:
+		return float64(val)
+	case int64:
+		return float64(val)
+	case float32:
+		return float64(val)
+	case float64:
+		return val
+	default:
+		return 0
+	}
 }
 
 //--------------------------------------------------------------------------------------

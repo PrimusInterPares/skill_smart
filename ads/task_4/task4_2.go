@@ -3,6 +3,8 @@ package main
 // Порядковый номер задания на курсе: 4
 // Номер задачи из задания: 4
 // Краткое название: функция, определяющая сбалансированность скобок `(` и `)` в строке
+// Time complexity: O(N)
+// Memory complexity: O(N)
 func IsStringBalanced(s string) bool {
 	st := &StackSlice[rune]{}
 
@@ -24,6 +26,8 @@ func IsStringBalanced(s string) bool {
 
 // Номер задачи из задания: 5
 // Краткое название: функция, определяющая сбалансированность скобок `(`, `)`, `{`, `}`, `[` и `]` в строке
+// Time complexity: O(N)
+// Memory complexity: O(N)
 func IsStringBalanced2(s string) bool {
 	st := &StackSlice[rune]{}
 
@@ -72,6 +76,8 @@ func IsStringBalanced2(s string) bool {
 
 // Номер задачи из задания: 6
 // Краткое название: функция, возвращающая минимальное значение в стеке за O(1)
+// Time complexity: O(1)
+// Memory complexity: O(1)
 func (st *Stack[T]) Min() (T, error) {
 	var zero T
 	if len(st.mins) == 0 {
@@ -87,6 +93,8 @@ func (st *Stack[T]) SetLess(less func(a, b T) bool) {
 
 // Номер задачи из задания: 7
 // Краткое название: функция, возвращающая среднее значение всех элементов в стеке за O(1)
+// Time complexity: O(1)
+// Memory complexity: O(1)
 func (st *Stack[T]) Avg() (float64, error) {
 	if st.Size() == 0 {
 		return 0, ErrEmptyStack
@@ -95,25 +103,10 @@ func (st *Stack[T]) Avg() (float64, error) {
 	return st.sum / float64(st.Size()), nil
 }
 
-func toFloat64(v any) float64 {
-	switch val := v.(type) {
-	case int:
-		return float64(val)
-	case int32:
-		return float64(val)
-	case int64:
-		return float64(val)
-	case float32:
-		return float64(val)
-	case float64:
-		return val
-	default:
-		return 0
-	}
-}
-
 // Номер задачи из задания: 8
 // Краткое название: функция, которая с помощью двух стеков реализует вычисление постфиксных выражений
+// Time complexity: O(N)
+// Memory complexity: O(N)
 func PostfixCalc(input *Stack[rune]) int {
 	numbers := &Stack[int]{}
 
