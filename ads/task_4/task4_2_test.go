@@ -189,7 +189,80 @@ func TestStack_Avg(t *testing.T) {
 }
 
 func Test_PostfixCalc(t *testing.T) {
+	t.Run("Input stack does not contain `=`", func(t *testing.T) {
+		input := &Stack[rune]{}
+		
+		input.Push('+')
+		input.Push('9')
+		input.Push('*')
+		input.Push('5')
+		input.Push('+')
+		input.Push('2')
+		input.Push('8')
 
+		result := PostfixCalc(input)
+
+		if result != 0 { t.Errorf("Expression must not be calculated, 0 must be returned but got %d", result) }
+	})
+	
+	t.Run("Cmplete expression", func(t *testing.T) {
+		input := &Stack[rune]{}
+		
+		input.Push('=')
+		input.Push('+')
+		input.Push('9')
+		input.Push('*')
+		input.Push('5')
+		input.Push('+')
+		input.Push('2')
+		input.Push('8')
+
+		result := PostfixCalc(input)
+
+		if result != 59 { t.Errorf("Expression must eq 59, got %d", result) }
+	})
+
+	t.Run("Empty stack", func(t *testing.T) {
+		input := &Stack[rune]{}
+	
+		result := PostfixCalc(input)
+		
+		if result != 0 { t.Errorf("Expected 0 for empty stack, got %d", result) }
+	})
+
+	t.Run("Only equals sign", func(t *testing.T) {
+		input := &Stack[rune]{}
+
+		input.Push('=')
+		
+		result := PostfixCalc(input)
+		
+		if result != 0 { t.Errorf("Expected 0 for stack with only '=', got %d", result) }
+	})
+
+	t.Run("Single number", func(t *testing.T) {
+		input := &Stack[rune]{}
+
+		input.Push('=')
+		input.Push('7')
+		
+		result := PostfixCalc(input)
+		
+		if result != 7 { t.Errorf("Expected 7, got %d", result) }
+	})
+
+	t.Run("Missing operands", func(t *testing.T) {
+		input := &Stack[rune]{}
+
+		input.Push('=')
+		input.Push('+')
+		input.Push('8')
+
+		result := PostfixCalc(input)
+	
+		// Текущая реализация игнорирует ошибки Pop, поэтому вернёт 8 (0 + 8)
+		if result != 8 { t.Errorf("Expected 8 (due to ignored errors), got %d", result) }
+	})
 }
 
 

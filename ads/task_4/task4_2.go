@@ -96,7 +96,32 @@ func toFloat64(v any) float64 {
 
 // Номер задачи из задания: 8
 // Краткое название: функция, которая с помощью двух стеков реализует вычисление постфиксных выражений
-func PostfixCalc() int {
+func PostfixCalc(input *Stack[rune]) int {
+	numbers := &Stack[int]{}
+
+	for input.Size() > 0 {
+		item, _ := input.Pop()
+
+		switch item {
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+			numbers.Push(int(item - '0'))
+		case '+':
+			a, _ := numbers.Pop()
+			b, _ := numbers.Pop()
+
+			numbers.Push(b + a)
+		case '*':
+			a, _ := numbers.Pop()
+			b, _ := numbers.Pop()
+
+			numbers.Push(b * a)
+		case '=':
+			res, _ := numbers.Peek()
+
+			return res
+		}
+	}
+
 	return 0
 }
 

@@ -79,8 +79,8 @@ func TestStack_Pop(t *testing.T) {
 
 		stack.Push(1)
     stack.Push(2)
-    stack.Pop()
-    stack.Pop()
+    _, _ = stack.Pop()
+    _, _ = stack.Pop()
 
 		_, err := stack.Pop()
     if !errors.Is(err, ErrEmptyStack) {

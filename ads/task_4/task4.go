@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-//	"os"
+	"os"
 )
 
 var ErrEmptyStack = errors.New("stack is empty")
