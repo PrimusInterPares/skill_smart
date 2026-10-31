@@ -50,7 +50,7 @@ func TestStackedQueue_Size(t *testing.T) {
 			queue := NewStackedQueue[int]()
 
 			for _, v := range tt.elems {
-				queue.Push(v)
+				queue.Enqueue(v)
 			}
 
 			qSize := queue.Size()
@@ -64,8 +64,8 @@ func TestStackedQueue_Size(t *testing.T) {
 	t.Run("stackIn is empty", func(t *testing.T) {
 		queue := NewStackedQueue[string]()
 
-		queue.Push("first")
-		queue.Push("second")
+		queue.Enqueue("first")
+		queue.Enqueue("second")
 		_, _ = queue.Peek()
 
 		if queue.stackIn.Size() != 0 {
@@ -101,9 +101,9 @@ func TestStackedQueue_Peek(t *testing.T) {
 
 	t.Run("queue with elements", func(t *testing.T) {
 		expectedHead := 10
-		queue.Push(expectedHead)
-		queue.Push(102030)
-		queue.Push(888)
+		queue.Enqueue(expectedHead)
+		queue.Enqueue(102030)
+		queue.Enqueue(888)
 
 		result, err := queue.Peek()
 
@@ -123,7 +123,7 @@ func TestStackedQueue_Pop(t *testing.T) {
 	queue := NewStackedQueue[int]()
 
 	t.Run("empty queue", func(t *testing.T) {
-		result, err := queue.Pop()
+		result, err := queue.Dequeue()
 
 		if err == nil {
 			t.Fatal("Error is expected")
@@ -139,11 +139,11 @@ func TestStackedQueue_Pop(t *testing.T) {
 
 	t.Run("queue with elements", func(t *testing.T) {
 		expectedHead := 999
-		queue.Push(expectedHead)
-		queue.Push(0)
-		queue.Push(-100)
+		queue.Enqueue(expectedHead)
+		queue.Enqueue(0)
+		queue.Enqueue(-100)
 
-		result, err := queue.Pop()
+		result, err := queue.Dequeue()
 
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
@@ -172,7 +172,7 @@ func TestQueue_Reverse(t *testing.T) {
 			q.Reverse()
 
 			if !slices.Equal(q.items, tt.expected) {
-				t.Errorf("Expected %v, got %v", q.items, tt.expected)
+				t.Errorf("Expected %v, got %v", tt.expected, q.items)
 			}
 		})
 	}

@@ -86,7 +86,7 @@ func (q *StackedQueue[T]) Size() int {
 
 // Time complexity: O(1)
 // Memory complexity: O(1)
-func (q *StackedQueue[T]) Push(itm T) {
+func (q *StackedQueue[T]) Enqueue(itm T) {
 	q.stackIn.Push(itm)
 }
 
@@ -113,7 +113,7 @@ func (q *StackedQueue[T]) Peek() (T, error) {
 
 // Time complexity: O(1), если stackOut не пуст, иначе O(N)
 // Memory complexity: O(1)
-func (q *StackedQueue[T]) Pop() (T, error) {
+func (q *StackedQueue[T]) Dequeue() (T, error) {
 	var result T
 
 	if q.Size() == 0 {
@@ -141,10 +141,12 @@ func (q *StackedQueue[T]) moveInToOut() {
 
 // Номер задачи из задания: 5
 // Краткое название: функция, которая обращает все элементы в очереди в обратном порядке
-// Time complexity: O()
-// Memory complexity: O()
+// Time complexity: O(N)
+// Memory complexity: O(1)
 func (q *Queue[T]) Reverse() {
-
+	for i, j := 0, len(q.items)-1; i < j; i, j = i+1, j-1 {
+		q.items[i], q.items[j] = q.items[j], q.items[i]
+	}
 }
 
 // Номер задачи из задания: 6
@@ -160,13 +162,11 @@ func NewRingQueue[T any](capacity int) *RingQueue[T] {
 }
 
 // Рефлексия
-// Номер задачи из задания: 6
-// Краткое название: Динамический массив на основе банковского метода.
+// Динамический массив на основе банковского метода.
 // Я решил усреднить стоимость операции до 3, хотя по расчётам выходило, что амортизационная стоимость удаления - 2.
 // Списывать я при уменьшении в реаллокации ничего не стал, но было оущение, что постоянно копящиеся 'деньги'
 // это скорее баг, нежели фича.
 
-// Номер задачи из задания: 7
-// Краткое название: Многомерный динамический массив.
+// Многомерный динамический массив.
 // Это снова так просто и так гениально! Когда читаешь, кажется, что на поверхности такое решение.
 // Но сам я не додумался, к сожалению, мутил рекурсию и вложенные дин. массивы =(
