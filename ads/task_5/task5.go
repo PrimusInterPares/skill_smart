@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-//	"os"
+	// "os"
 )
 
 var ErrEmptyQueue = errors.New("queue is empty")
@@ -11,7 +11,7 @@ type Queue[T any] struct {
 	items []T
 }
 
-func (q *Queue[T]) Size() (int) {
+func (q *Queue[T]) Size() int {
 	return len(q.items)
 }
 
@@ -38,5 +38,3 @@ func (q *Queue[T]) Dequeue() (T, error) {
 func (q *Queue[T]) Enqueue(itm T) {
 	q.items = append(q.items, itm)
 }
-
-

@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"errors"
 	"testing"
 )
@@ -41,7 +41,7 @@ func TestQueue_Dequeue(t *testing.T) {
 			t.Errorf("ErrEmptyQueue is expected, got %v", err)
 		}
 		var zeroString string
-		if item != zeroString{
+		if item != zeroString {
 			t.Errorf("No value must be returned, got %s", item)
 		}
 	})
@@ -68,7 +68,9 @@ func TestQueue_Enqueue(t *testing.T) {
 	t.Run("Equeueing in an empty queue", func(t *testing.T) {
 		queue.Enqueue("first")
 
-		if queue.Size() != 1 { t.Errorf("Size after enqueueing must become 1, got %d", queue.Size()) }
+		if queue.Size() != 1 {
+			t.Errorf("Size after enqueueing must become 1, got %d", queue.Size())
+		}
 	})
 
 	t.Run("Enqueueing in a queue with elements", func(t *testing.T) {
@@ -77,10 +79,10 @@ func TestQueue_Enqueue(t *testing.T) {
 		oldSize := queue.Size()
 		queue.Enqueue("second")
 
-		if queue.Size() != oldSize + 1 {
-			t.Errorf("Enquque must increase size by 1, increased by %d", oldSize - queue.Size())
+		if queue.Size() != oldSize+1 {
+			t.Errorf("Enquque must increase size by 1, increased by %d", oldSize-queue.Size())
 		}
-		
+
 		item, err := queue.Dequeue()
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -90,5 +92,3 @@ func TestQueue_Enqueue(t *testing.T) {
 		}
 	})
 }
-
-
