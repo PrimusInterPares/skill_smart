@@ -177,3 +177,113 @@ func TestQueue_Reverse(t *testing.T) {
 		})
 	}
 }
+
+func TestRingQueue_Enqueue(t *testing.T) {
+	t.Run("enqueue single element", func(t *testing.T) {
+		queue := NewRingQueue[int](3)
+
+		err := queue.Enqueue(10)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+
+		val, _ := queue.Dequeue()
+		if val != 10 {
+			t.Errorf("Expected 10, got %d", val)
+		}
+	})
+
+	t.Run("enqueue until full", func(t *testing.T) {
+		queue := NewRingQueue[int](2)
+
+		if err := queue.Enqueue(1); err != nil {
+			t.Errorf("unexpected error on 1st enqueue: %v", err)
+		}
+		if err := queue.Enqueue(2); err != nil {
+			t.Errorf("unexpected error on 2nd enqueue: %v", err)
+		}
+	})
+
+	t.Run("enqueue when full returns ErrFullQueue", func(t *testing.T) {
+		queue := NewRingQueue[int](1)
+
+		_ = queue.Enqueue(1)
+
+		err := queue.Enqueue(2)
+		if !errors.Is(err, ErrFullQueue) {
+			t.Errorf("expected ErrFullQueue, got %v", err)
+		}
+	})
+
+	t.Run("enqueue after dequeue (wrap-around)", func(t *testing.T) {
+		queue := NewRingQueue[int](3)
+		_ = queue.Enqueue(1)
+		_ = queue.Enqueue(2)
+
+		_, _ = queue.Dequeue() // head moves to index 1
+		_ = queue.Enqueue(3)   // index must be 0
+
+		// FIFO: 2, 3
+		v1, _ := queue.Dequeue()
+		v2, _ := queue.Dequeue()
+		if v1 != 2 || v2 != 3 {
+			t.Errorf("Expected 2 and 3, got %d and %d", v1, v2)
+		}
+	})
+}
+
+func TestRingQueue_Dequeue(t *testing.T) {
+	t.Run("dequeue from empty returns ErrEmptyQueue", func(t *testing.T) {
+		queue := NewRingQueue[int](3)
+
+		_, err := queue.Dequeue()
+		if !errors.Is(err, ErrEmptyQueue) {
+			t.Errorf("Expected ErrEmptyQueue, got %v", err)
+		}
+	})
+
+	t.Run("dequeue single element", func(t *testing.T) {
+		queue := NewRingQueue[int](3)
+
+		_ = queue.Enqueue(42)
+
+		val, err := queue.Dequeue()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if val != 42 {
+			t.Errorf("expected 42, got %d", val)
+		}
+	})
+
+	t.Run("dequeue maintains FIFO order", func(t *testing.T) {
+		queue := NewRingQueue[int](5)
+
+		for i := 1; i <= 3; i++ {
+			_ = queue.Enqueue(i)
+		}
+
+		for i := 1; i <= 3; i++ {
+			val, err := queue.Dequeue()
+			if err != nil {
+				t.Errorf("Unexpected error on dequeue %d: %v", i, err)
+			}
+			if val != i {
+				t.Errorf("Expected %d, got %d", i, val)
+			}
+		}
+	})
+
+	t.Run("dequeue empty queue after draining", func(t *testing.T) {
+		queue := NewRingQueue[int](2)
+		_ = queue.Enqueue(1)
+		_, _ = queue.Dequeue()
+
+		_, err := queue.Dequeue()
+
+		if !errors.Is(err, ErrEmptyQueue) {
+			t.Errorf("Expected ErrEmptyQueue, got %v", err)
+		}
+	})
+}

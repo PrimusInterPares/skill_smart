@@ -151,14 +151,50 @@ func (q *Queue[T]) Reverse() {
 
 // Номер задачи из задания: 6
 // Краткое название: круговая (циклическая буферная) очередь со статическим массивом фиксированного размера
+var ErrFullQueue = errors.New("Queue is full")
+
 type RingQueue[T any] struct {
-	items  []T
-	head   int
-	length int
+	items []T
+	head  int
+	count int
 }
 
 func NewRingQueue[T any](capacity int) *RingQueue[T] {
 	return &RingQueue[T]{items: make([]T, capacity)}
+}
+
+func (rq *RingQueue[T]) isFull() bool {
+	return rq.count == len(rq.items)
+}
+
+// Time complexity: O(1)
+// Memory complexity: O(1)
+func (rq *RingQueue[T]) Enqueue(itm T) error {
+	if rq.isFull() {
+		return ErrFullQueue
+	}
+
+	index := (rq.head + rq.count) % len(rq.items) // [_, _, A]: index = (2 + 1) % 3 = 0 -> [B, _, A]
+	rq.items[index] = itm
+	rq.count++
+
+	return nil
+}
+
+// Time complexity: O(1)
+// Memory complexity: O(1)
+func (rq *RingQueue[T]) Dequeue() (T, error) {
+	var result T
+
+	if rq.count == 0 {
+		return result, ErrEmptyQueue
+	}
+
+	result = rq.items[rq.head]
+	rq.head = (rq.head + 1) % len(rq.items) // [_, _, A]: start == 2 -> start == 0
+	rq.count--
+
+	return result, nil
 }
 
 // Рефлексия
