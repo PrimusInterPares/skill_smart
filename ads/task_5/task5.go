@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	// "os"
+	"os"
 )
 
 var ErrEmptyQueue = errors.New("queue is empty")
