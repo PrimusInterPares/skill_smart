@@ -1,5 +1,9 @@
 package main
 
+import (
+	"errors"
+)
+
 // Порядковый номер задания на курсе: 5
 // Номер задачи из задания: 3
 // Краткое название: функция, 'вращающая' очередь по кругу на N элементов
@@ -20,7 +24,119 @@ func (q *Queue[T]) Rotate(n int) {
 
 // Номер задачи из задания: 4
 // Краткое название: очередь с помощью двух стеков
+var ErrEmptyStack = errors.New("stack is empty")
+
+type node[T any] struct {
+	next  *node[T]
+	value T
+}
+
+type Stack[T any] struct {
+	head *node[T]
+	size int
+}
+
+func (st *Stack[T]) Size() int {
+	return st.size
+}
+
+func (st *Stack[T]) Peek() (T, error) {
+	var result T
+	if st.Size() == 0 {
+		return result, ErrEmptyStack
+	}
+
+	result = st.head.value
+
+	return result, nil
+}
+
+func (st *Stack[T]) Pop() (T, error) {
+	var result T
+	if st.Size() == 0 {
+		return result, ErrEmptyStack
+	}
+	result = st.head.value
+	st.head = st.head.next
+	st.size--
+
+	return result, nil
+}
+
+func (st *Stack[T]) Push(item T) {
+	st.head = &node[T]{value: item, next: st.head}
+	st.size++
+}
+
 type StackedQueue[T any] struct {
+	stackIn  *Stack[T]
+	stackOut *Stack[T]
+}
+
+func NewStackedQueue[T any]() *StackedQueue[T] {
+	return &StackedQueue[T]{
+		stackIn:  &Stack[T]{},
+		stackOut: &Stack[T]{},
+	}
+}
+
+func (q *StackedQueue[T]) Size() int {
+	return q.stackIn.Size() + q.stackOut.Size()
+}
+
+// Time complexity: O(1)
+// Memory complexity: O(1)
+func (q *StackedQueue[T]) Push(itm T) {
+	q.stackIn.Push(itm)
+}
+
+// Time complexity: O(1), если stackOut не пуст, иначе O(N)
+// Memory complexity: O(1)
+func (q *StackedQueue[T]) Peek() (T, error) {
+	var result T
+
+	if q.Size() == 0 {
+		return result, ErrEmptyQueue
+	}
+
+	if q.stackOut.Size() == 0 {
+		q.moveInToOut()
+	}
+
+	result, err := q.stackOut.Peek()
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+// Time complexity: O(1), если stackOut не пуст, иначе O(N)
+// Memory complexity: O(1)
+func (q *StackedQueue[T]) Pop() (T, error) {
+	var result T
+
+	if q.Size() == 0 {
+		return result, ErrEmptyQueue
+	}
+
+	if q.stackOut.Size() == 0 {
+		q.moveInToOut()
+	}
+
+	result, err := q.stackOut.Pop()
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func (q *StackedQueue[T]) moveInToOut() {
+	for q.stackIn.Size() > 0 {
+		inVal, _ := q.stackIn.Pop()
+		q.stackOut.Push(inVal)
+	}
 }
 
 // Номер задачи из задания: 5
