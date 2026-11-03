@@ -105,3 +105,59 @@ func TestIsPalindrome(t *testing.T) {
 		}
 	})
 }
+
+func TestDeque_Min(t *testing.T) {
+	tests := []struct {
+		name        string
+		elems       []int
+		expectedMin int
+		expectedErr error
+	}{
+		{"Empty deque", []int{}, 0, ErrEmptyDeque},
+		{"Single element", []int{42}, 42, nil},
+		{"Positive numbers", []int{1, 2, 3}, 1, nil},
+		{"Negative numbers", []int{-1, -2, -3}, -3, nil},
+		{"Mixed positive and negative numbers", []int{-1, 2, -4, 0, 5}, -4, nil},
+		{"Identical numbers", []int{7, 7, 7}, 7, nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &Deque[int]{}
+
+			d.SetLess(func(a, b int) bool { return a < b })
+			for _, i := range tt.elems {
+				d.AddTail(i)
+			}
+
+			actual, err := d.Min()
+
+			if err != tt.expectedErr {
+				t.Errorf("Unexpected error: %v", err)
+			}
+			if actual != tt.expectedMin {
+				t.Errorf("Expected min is %v, got %d", tt.expectedMin, actual)
+			}
+		})
+	}
+
+	t.Run("With strings", func(t *testing.T) {
+		d := &Deque[string]{}
+
+		d.SetLess(func(a, b string) bool { return a < b })
+
+		d.AddFront("orange")
+		d.AddTail("apple")
+		d.AddTail("banana")
+
+		actual, err := d.Min()
+		expected := "apple"
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+		if actual != expected {
+			t.Errorf("Expected min is `%s`, got `%s`", actual, expected)
+		}
+	})
+}

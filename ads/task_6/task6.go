@@ -31,12 +31,14 @@ type Block[T any] struct {
 	tail  int          // after last element index
 	prev  *Block[T]
 	next  *Block[T]
+	mins  []T
 }
 
 type Deque[T any] struct {
 	front *Block[T]
 	back  *Block[T]
 	size  int
+	less  func(a, b T) bool
 }
 
 func (d *Deque[T]) Size() int {
@@ -55,7 +57,7 @@ func (d *Deque[T]) AddFront(itm T) {
 
 	// front block has free space
 	if d.front.head > 0 {
-		d.front.addFront(itm)
+		d.front.addFront(itm, d.less)
 		d.size++
 
 		return
@@ -65,6 +67,10 @@ func (d *Deque[T]) AddFront(itm T) {
 	b := newFrontBlock[T]()
 	b.head--
 	b.items[b.head] = itm
+
+	if d.less != nil {
+		b.mins = append(b.mins, itm)
+	}
 
 	b.next = d.front
 	d.front.prev = b
@@ -76,9 +82,16 @@ func newFrontBlock[T any]() *Block[T] {
 	return newBlock[T](blockSize, blockSize)
 }
 
-func (b *Block[T]) addFront(itm T) {
+func (b *Block[T]) addFront(itm T, less func(T, T) bool) {
 	b.head--
 	b.items[b.head] = itm
+
+	if less != nil {
+		for len(b.mins) > 0 && less(itm, b.mins[0]) {
+			b.mins = b.mins[1:]
+		}
+		b.mins = append([]T{itm}, b.mins...)
+	}
 }
 
 func (d *Deque[T]) AddTail(itm T) {
@@ -89,6 +102,13 @@ func (d *Deque[T]) AddTail(itm T) {
 	} else if d.size == 0 {
 		d.back.head = 0
 		d.back.tail = 0
+	}
+
+	if d.less != nil {
+		for len(d.back.mins) > 0 && d.less(itm, d.back.mins[len(d.back.mins)-1]) {
+			d.back.mins = d.back.mins[:len(d.back.mins)-1]
+		}
+		d.back.mins = append(d.back.mins, itm)
 	}
 
 	// back block has free space
@@ -132,6 +152,10 @@ func (d *Deque[T]) RemoveFront() (T, error) {
 	b.head++
 	d.size--
 
+	if d.less != nil && len(b.mins) > 0 && isEqual(result, b.mins[0], d.less) {
+		b.mins = b.mins[1:]
+	}
+
 	// if block is empty now
 	if b.tail == b.head {
 		// and it is the last block
@@ -161,6 +185,10 @@ func (d *Deque[T]) RemoveTail() (T, error) {
 	b.items[b.tail] = zero
 	d.size--
 
+	if d.less != nil && len(b.mins) > 0 && isEqual(result, b.mins[len(b.mins)-1], d.less) {
+		b.mins = b.mins[:len(b.mins)-1]
+	}
+
 	// if block is empty now
 	if b.tail == b.head {
 		// and it is the last block
@@ -179,4 +207,8 @@ func (d *Deque[T]) RemoveTail() (T, error) {
 
 func newBlock[T any](head, tail int) *Block[T] {
 	return &Block[T]{head: head, tail: tail}
+}
+
+func isEqual[T any](a, b T, less func(T, T) bool) bool {
+	return !less(a, b) && !less(b, a)
 }
