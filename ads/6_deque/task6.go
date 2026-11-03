@@ -2,146 +2,153 @@ package main
 
 import (
 	"errors"
-	// "os"
+	"os"
 )
-
-// Deque (size: 5)
-//  │
-//  ├── front ──┐
-//  │           ▼
-//  │    ┌───────────────────────┐       ┌───────────────────────┐
-//  │    │ Block 1               │       │ Block 2               │
-//  │    │ head: 1, tail: 4      │       │ head: 0, tail: 2      │
-//  │    │ prev: nil             │ next  │ prev: &Block1         │
-//  │    │                       ├──────►│ next: nil             │
-//  │    │ data: [ _, A, B, C ]  │       │ data: [ D, E, _, _ ]  │
-//  │    │          ▲        ▲   │       │        ▲        ▲     │
-//  │    │        head      tail │       │      head      tail   │
-//  │    └───────────────────────┘       └───────────────────────┘
-//  │
-//  └── back ─────────────────────────────────────────────────────┘
 
 var ErrEmptyDeque = errors.New("Deque is empty")
 
 const blockSize = 64
 
 type Block[T any] struct {
-	items [blockSize]T // slice of fixed size
-	head  int          // first element index
-	tail  int          // after last element index
+	items [blockSize]T
+	head  int
+	tail  int
 	prev  *Block[T]
 	next  *Block[T]
-	mins  []T
 }
 
 type Deque[T any] struct {
 	front *Block[T]
 	back  *Block[T]
 	size  int
-	less  func(a, b T) bool
+
+	less    func(a, b T) bool
+	minBuf  []T // ring stack
+	minHead int
+	minTail int
 }
 
 func (d *Deque[T]) Size() int {
 	return d.size
 }
 
+func (d *Deque[T]) adjustMinCapacity() {
+	if d.minBuf == nil {
+		d.minBuf = make([]T, 128)
+		d.minHead = 64
+		d.minTail = 64
+
+		return
+	}
+
+	if d.minHead == 0 || d.minTail == len(d.minBuf) {
+		newCap := len(d.minBuf) * 2
+		newBuf := make([]T, newCap)
+		newHead := newCap / 4 // center
+		n := copy(newBuf[newHead:], d.minBuf[d.minHead:d.minTail])
+
+		d.minBuf = newBuf
+		d.minHead = newHead
+		d.minTail = newHead + n
+	}
+}
+
+func (d *Deque[T]) pushMinFront(itm T) {
+	if d.less == nil {
+		return
+	}
+
+	d.adjustMinCapacity()
+
+	for d.minHead < d.minTail && d.less(itm, d.minBuf[d.minHead]) {
+		d.minHead++
+	}
+	d.minHead--
+	d.minBuf[d.minHead] = itm
+}
+
+func (d *Deque[T]) pushMinTail(itm T) {
+	if d.less == nil {
+		return
+	}
+
+	d.adjustMinCapacity()
+
+	for d.minHead < d.minTail && d.less(itm, d.minBuf[d.minTail-1]) {
+		d.minTail--
+	}
+	d.minBuf[d.minTail] = itm
+	d.minTail++
+}
+
+// Time complexity: O(1) amortized
+// Memory complexity: O(1)
 func (d *Deque[T]) AddFront(itm T) {
 	if d.front == nil {
-		b := newFrontBlock[T]()
-		d.front = b
-		d.back = b
+		d.front = &Block[T]{head: blockSize, tail: blockSize}
+		d.back = d.front
 	} else if d.size == 0 {
 		d.front.head = blockSize
 		d.front.tail = blockSize
 	}
 
-	// front block has free space
 	if d.front.head > 0 {
-		d.front.addFront(itm, d.less)
+		d.front.head--
+		d.front.items[d.front.head] = itm
 		d.size++
+
+		d.pushMinFront(itm)
 
 		return
 	}
 
-	// front block is full (head == 0)
-	b := newFrontBlock[T]()
-	b.head--
+	b := &Block[T]{head: blockSize - 1, tail: blockSize}
 	b.items[b.head] = itm
-
-	if d.less != nil {
-		b.mins = append(b.mins, itm)
-	}
-
 	b.next = d.front
 	d.front.prev = b
 	d.front = b
 	d.size++
+
+	d.pushMinFront(itm)
 }
 
-func newFrontBlock[T any]() *Block[T] {
-	return newBlock[T](blockSize, blockSize)
-}
-
-func (b *Block[T]) addFront(itm T, less func(T, T) bool) {
-	b.head--
-	b.items[b.head] = itm
-
-	if less != nil {
-		for len(b.mins) > 0 && less(itm, b.mins[0]) {
-			b.mins = b.mins[1:]
-		}
-		b.mins = append([]T{itm}, b.mins...)
-	}
-}
-
+// Time complexity: O(1) amortized
+// Memory complexity: O(1)
 func (d *Deque[T]) AddTail(itm T) {
 	if d.back == nil {
-		b := newBackBlock[T]()
-		d.front = b
-		d.back = b
+		d.back = &Block[T]{head: 0, tail: 0}
+		d.front = d.back
 	} else if d.size == 0 {
 		d.back.head = 0
 		d.back.tail = 0
 	}
 
-	if d.less != nil {
-		for len(d.back.mins) > 0 && d.less(itm, d.back.mins[len(d.back.mins)-1]) {
-			d.back.mins = d.back.mins[:len(d.back.mins)-1]
-		}
-		d.back.mins = append(d.back.mins, itm)
-	}
-
-	// back block has free space
 	if d.back.tail < blockSize {
-		d.back.addTail(itm)
+		d.back.items[d.back.tail] = itm
+		d.back.tail++
 		d.size++
+
+		d.pushMinTail(itm)
 
 		return
 	}
 
-	// back block is full (tail == 64)
-	b := newBackBlock[T]()
-	b.items[b.head] = itm
-	b.tail++
-
+	b := &Block[T]{head: 0, tail: 1}
+	b.items[0] = itm
 	b.prev = d.back
 	d.back.next = b
 	d.back = b
 	d.size++
+
+	d.pushMinTail(itm)
 }
 
-func newBackBlock[T any]() *Block[T] {
-	return newBlock[T](0, 0)
-}
-
-func (b *Block[T]) addTail(itm T) {
-	b.items[b.tail] = itm
-	b.tail++
-}
-
+// Time complexity: O(1) amortized
+// Memory complexity: O(1)
 func (d *Deque[T]) RemoveFront() (T, error) {
 	var result T
-	if d.Size() == 0 {
+
+	if d.size == 0 {
 		return result, ErrEmptyDeque
 	}
 
@@ -152,29 +159,28 @@ func (d *Deque[T]) RemoveFront() (T, error) {
 	b.head++
 	d.size--
 
-	if d.less != nil && len(b.mins) > 0 && isEqual(result, b.mins[0], d.less) {
-		b.mins = b.mins[1:]
+	if d.less != nil && d.minHead < d.minTail && isEqual(result, d.minBuf[d.minHead], d.less) {
+		d.minHead++
 	}
 
-	// if block is empty now
 	if b.tail == b.head {
-		// and it is the last block
 		if d.back == b {
-			return result, nil
+			return result, nil // reuse last block
 		}
 
-		d.front.next.prev = nil
 		d.front = d.front.next
-
-		return result, nil
+		d.front.prev = nil
 	}
 
 	return result, nil
 }
 
+// Time complexity: O(1) amortized
+// Memory complexity: O(1)
 func (d *Deque[T]) RemoveTail() (T, error) {
 	var result T
-	if d.Size() == 0 {
+
+	if d.size == 0 {
 		return result, ErrEmptyDeque
 	}
 
@@ -185,30 +191,24 @@ func (d *Deque[T]) RemoveTail() (T, error) {
 	b.items[b.tail] = zero
 	d.size--
 
-	if d.less != nil && len(b.mins) > 0 && isEqual(result, b.mins[len(b.mins)-1], d.less) {
-		b.mins = b.mins[:len(b.mins)-1]
+	if d.less != nil && d.minHead < d.minTail && isEqual(result, d.minBuf[d.minTail-1], d.less) {
+		d.minTail--
 	}
 
-	// if block is empty now
 	if b.tail == b.head {
-		// and it is the last block
 		if d.front == b {
-			return result, nil
+			return result, nil // reuse last block
 		}
 
-		d.back.prev.next = nil
 		d.back = d.back.prev
-
-		return result, nil
+		d.back.next = nil
 	}
 
 	return result, nil
 }
 
-func newBlock[T any](head, tail int) *Block[T] {
-	return &Block[T]{head: head, tail: tail}
-}
-
 func isEqual[T any](a, b T, less func(T, T) bool) bool {
 	return !less(a, b) && !less(b, a)
 }
+
+
