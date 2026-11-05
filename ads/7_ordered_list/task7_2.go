@@ -92,3 +92,68 @@ func MergeOrderedLists[T constraints.Ordered](list1, list2 *OrderedList[T]) (*Or
 
 	return merged, nil
 }
+
+// Номер задачи из задания: 10
+// Краткое название: метод проверки наличия заданного упорядоченного подсписка в текущем списке
+// Time complexity: O(N)
+// Memory complexity: O(1)
+func (l *OrderedList[T]) ContainsSublist(sublist *OrderedList[T]) bool {
+	if sublist.Count() == 0 {
+		return true
+	}
+	if l.Count() < sublist.Count() {
+		return false
+	}
+	if l.ascending != sublist.ascending {
+		return false
+	}
+
+	node := l.head
+	nodeCountLeft := l.Count()
+	sub := sublist.head
+	for node != nil {
+		compare := l.Compare(node.value, sub.value)
+		// текущий элемент l уже больше (или меньше) начала sublist
+		if (l.ascending && compare > 0) || (!l.ascending && compare < 0) {
+			break
+		}
+		if nodeCountLeft < sublist.Count() {
+			return false
+		}
+
+		if compare == 0 {
+			n := node
+			s := sub
+			match := true
+
+			for s != nil {
+				if n == nil || l.Compare(n.value, s.value) != 0 {
+					match = false
+					break
+				}
+
+				n = n.next
+				s = s.next
+			}
+
+			if match {
+				return true
+			}
+		}
+
+		node = node.next
+		nodeCountLeft--
+	}
+
+	return false
+}
+
+// Номер задачи из задания: 11
+// Краткое название: метод, который находит наиболее часто встречающееся значение в списке
+// Time complexity: O()
+// Memory complexity: O()
+func (l *OrderedList[T]) MostFrequentVal() T {
+	var zero T
+
+	return zero
+}

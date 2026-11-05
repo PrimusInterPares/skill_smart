@@ -150,6 +150,7 @@ func TestMergeOrderedLists(t *testing.T) {
 		if merged.Count() != 0 {
 			t.Errorf("Expected 0 elements, got %d", merged.Count())
 		}
+
 		validateListIntegrity(t, merged)
 	})
 
@@ -171,6 +172,7 @@ func TestMergeOrderedLists(t *testing.T) {
 		if merged.head.value != 1 || merged.tail.value != 5 {
 			t.Errorf("Expected head=1, tail=5")
 		}
+
 		validateListIntegrity(t, merged)
 	})
 
@@ -192,6 +194,7 @@ func TestMergeOrderedLists(t *testing.T) {
 		if merged.head.value != 5 || merged.tail.value != 1 {
 			t.Errorf("Expected head=5, tail=1")
 		}
+
 		validateListIntegrity(t, merged)
 	})
 
@@ -214,7 +217,6 @@ func TestMergeOrderedLists(t *testing.T) {
 			t.Errorf("Expected 6 elements, got %d", merged.Count())
 		}
 
-		// Check order: 1, 2, 3, 4, 5, 6
 		expected := []int{1, 2, 3, 4, 5, 6}
 		node := merged.head
 		for i, exp := range expected {
@@ -227,6 +229,7 @@ func TestMergeOrderedLists(t *testing.T) {
 			}
 			node = node.next
 		}
+
 		validateListIntegrity(t, merged)
 	})
 
@@ -249,7 +252,6 @@ func TestMergeOrderedLists(t *testing.T) {
 			t.Errorf("Expected 6 elements, got %d", merged.Count())
 		}
 
-		// Check order: 6, 5, 4, 3, 2, 1
 		expected := []int{6, 5, 4, 3, 2, 1}
 		node := merged.head
 		for i, exp := range expected {
@@ -262,6 +264,7 @@ func TestMergeOrderedLists(t *testing.T) {
 			}
 			node = node.next
 		}
+
 		validateListIntegrity(t, merged)
 	})
 
@@ -284,7 +287,6 @@ func TestMergeOrderedLists(t *testing.T) {
 			t.Errorf("Expected 6 elements, got %d", merged.Count())
 		}
 
-		// Check order: 1, 2, 3, 3, 4, 5
 		expected := []int{1, 2, 3, 3, 4, 5}
 		node := merged.head
 		for i, exp := range expected {
@@ -297,6 +299,7 @@ func TestMergeOrderedLists(t *testing.T) {
 			}
 			node = node.next
 		}
+
 		validateListIntegrity(t, merged)
 	})
 
@@ -335,6 +338,7 @@ func TestMergeOrderedLists(t *testing.T) {
 		if merged.head.value != 3 || merged.tail.value != 5 {
 			t.Errorf("Expected head=3, tail=5")
 		}
+
 		validateListIntegrity(t, merged)
 	})
 
@@ -367,6 +371,223 @@ func TestMergeOrderedLists(t *testing.T) {
 			}
 			node = node.next
 		}
+
 		validateListIntegrity(t, merged)
+	})
+}
+
+func TestOrderedList_ContainsSublist(t *testing.T) {
+	t.Run("Empty sublist in non-empty list", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+
+		sub := &OrderedList[int]{ascending: true}
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected empty list to be a sublist of any list")
+		}
+	})
+
+	t.Run("Empty main list and empty sublist", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{ascending: true}
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected empty list to contain empty sublist")
+		}
+	})
+
+	t.Run("Sublist at the beginning", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+		l.Add(3)
+		l.Add(4)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(1)
+		sub.Add(2)
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected [1, 2] to be found at the beginning")
+		}
+	})
+
+	t.Run("Sublist in the middle", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(10)
+		l.Add(20)
+		l.Add(30)
+		l.Add(40)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(20)
+		sub.Add(30)
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected [20, 30] to be found in the middle")
+		}
+	})
+
+	t.Run("Sublist at the end", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+		l.Add(3)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(2)
+		sub.Add(3)
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected [2, 3] to be found at the end")
+		}
+	})
+
+	t.Run("Sublist equals main list", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(5)
+		l.Add(6)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(5)
+		sub.Add(6)
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected list to contain itself as a sublist")
+		}
+	})
+
+	t.Run("Sublist not found", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(3)
+		l.Add(5)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(2)
+		sub.Add(3)
+
+		if l.ContainsSublist(sub) {
+			t.Errorf("Expected [2, 3] not to be found in [1, 3, 5]")
+		}
+	})
+
+	t.Run("Sublist larger than main list", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(1)
+		sub.Add(2)
+
+		if l.ContainsSublist(sub) {
+			t.Errorf("Expected false when sublist is larger than main list")
+		}
+	})
+
+	t.Run("Mismatched ordering", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+
+		sub := &OrderedList[int]{ascending: false}
+		sub.Add(1)
+		sub.Add(2)
+
+		if l.ContainsSublist(sub) {
+			t.Errorf("Expected false for lists with different ordering")
+		}
+	})
+
+	t.Run("Single element sublist found", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(10)
+		l.Add(20)
+		l.Add(30)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(20)
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected [20] to be found")
+		}
+	})
+
+	t.Run("String lists", func(t *testing.T) {
+		l := &OrderedList[string]{ascending: true}
+		l.Add("apple")
+		l.Add("banana")
+		l.Add("cherry")
+
+		sub := &OrderedList[string]{ascending: true}
+		sub.Add("banana")
+		sub.Add("cherry")
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected ['banana', 'cherry'] to be found")
+		}
+	})
+
+	t.Run("Sublist with duplicates in main list", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(3)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(2)
+		sub.Add(2)
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected [2, 2] to be found in [1, 2, 2, 2, 3]")
+		}
+	})
+
+	t.Run("Single element sublist not found", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(3)
+		l.Add(5)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(2)
+
+		if l.ContainsSublist(sub) {
+			t.Errorf("Expected [2] not to be found in [1, 3, 5]")
+		}
+	})
+
+	t.Run("Sublist larger than main list (empty main)", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(1)
+
+		if l.ContainsSublist(sub) {
+			t.Errorf("Expected false when main list is empty and sublist is not")
+		}
+	})
+
+	t.Run("Complex overlap with duplicates", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(1)
+		l.Add(2)
+		l.Add(3)
+		l.Add(3)
+		l.Add(4)
+
+		sub := &OrderedList[int]{ascending: true}
+		sub.Add(1)
+		sub.Add(2)
+		sub.Add(3)
+
+		if !l.ContainsSublist(sub) {
+			t.Errorf("Expected [1, 2, 3] to be found")
+		}
 	})
 }
