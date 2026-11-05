@@ -59,6 +59,12 @@ func (l *OrderedList[T]) Add(item T) {
 
 		node = node.next
 	}
+
+	newNode.prev = l.tail
+	l.tail.next = newNode
+	l.tail = newNode
+
+	l.count++
 }
 
 func (l *OrderedList[T]) Find(n T) (Node[T], error) {
@@ -70,7 +76,13 @@ func (l *OrderedList[T]) Find(n T) (Node[T], error) {
 
 	node := l.head
 	for node != nil {
-		if node.value == n {
+		compare := l.Compare(node.value, n)
+
+		if compare > 0 {
+			break
+		}
+
+		if compare == 0 {
 			return *node, nil
 		}
 
