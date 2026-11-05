@@ -4,6 +4,7 @@ import (
 	"constraints"
 	"errors"
 	// "os"
+	"strings"
 )
 
 var (
@@ -137,6 +138,24 @@ func (l *OrderedList[T]) Clear(asc bool) {
 
 func (l *OrderedList[T]) Compare(v1, v2 T) int {
 	result := 0
+
+	if s1, ok := any(v1).(string); ok {
+		s2 := any(v2).(string)
+
+		s1, s2 = strings.TrimSpace(s1), strings.TrimSpace(s2)
+
+		if s1 < s2 {
+			result = -1
+		} else if s1 > s2 {
+			result = +1
+		}
+
+		if !l.ascending {
+			return -result
+		}
+
+		return result
+	}
 
 	if v1 < v2 {
 		result = -1

@@ -416,35 +416,59 @@ func TestOrderedList_Clear(t *testing.T) {
 }
 
 func TestOrderedList_Compare(t *testing.T) {
-	t.Run("Ascending is true", func(t *testing.T) {
+	t.Run("Int ascending", func(t *testing.T) {
 		l := &OrderedList[int]{ascending: true}
 
 		if l.Compare(1, 2) != -1 {
 			t.Errorf("Expected -1 for 1 < 2, got %d", l.Compare(1, 2))
 		}
-
 		if l.Compare(2, 1) != 1 {
 			t.Errorf("Expected 1 for 2 > 1, got %d", l.Compare(2, 1))
 		}
-
 		if l.Compare(1, 1) != 0 {
 			t.Errorf("Expected 0 for 1 == 1, got %d", l.Compare(1, 1))
 		}
 	})
 
-	t.Run("Ascending is false", func(t *testing.T) {
+	t.Run("Int descending", func(t *testing.T) {
 		l := &OrderedList[int]{ascending: false}
 
 		if l.Compare(1, 2) != 1 {
 			t.Errorf("Expected 1 for 1 < 2 in descending, got %d", l.Compare(1, 2))
 		}
-
 		if l.Compare(2, 1) != -1 {
 			t.Errorf("Expected -1 for 2 > 1 in descending, got %d", l.Compare(2, 1))
 		}
-
 		if l.Compare(1, 1) != 0 {
 			t.Errorf("Expected 0 for 1 == 1 in descending, got %d", l.Compare(1, 1))
+		}
+	})
+
+	t.Run("String ascending", func(t *testing.T) {
+		l := &OrderedList[string]{ascending: true}
+
+		if l.Compare("a", "b") != -1 {
+			t.Errorf("Expected -1 for 'a' < 'b', got %d", l.Compare("a", "b"))
+		}
+		if l.Compare("b", "a") != 1 {
+			t.Errorf("Expected 1 for 'b' > 'a', got %d", l.Compare("b", "a"))
+		}
+		if l.Compare(" a ", "a") != 0 {
+			t.Errorf("Expected 0 for ' a ' == 'a' (trimmed), got %d", l.Compare(" a ", "a"))
+		}
+	})
+
+	t.Run("String descending", func(t *testing.T) {
+		l := &OrderedList[string]{ascending: false}
+
+		if l.Compare("a", "b") != 1 {
+			t.Errorf("Expected 1 for 'a' < 'b' in descending, got %d", l.Compare("a", "b"))
+		}
+		if l.Compare("b", "a") != -1 {
+			t.Errorf("Expected -1 for 'b' > 'a' in descending, got %d", l.Compare("b", "a"))
+		}
+		if l.Compare(" a ", "a") != 0 {
+			t.Errorf("Expected 0 for ' a ' == 'a' (trimmed) in descending, got %d", l.Compare(" a ", "a"))
 		}
 	})
 }
