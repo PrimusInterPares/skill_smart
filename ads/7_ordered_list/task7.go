@@ -29,6 +29,8 @@ func (l *OrderedList[T]) Count() int {
 	return l.count
 }
 
+// Time complexity: O(N), O(N*L) for strings, where L is len(string)
+// Memory complexity: O(1)
 func (l *OrderedList[T]) Add(item T) {
 	newNode := &Node[T]{value: item}
 
@@ -68,6 +70,8 @@ func (l *OrderedList[T]) Add(item T) {
 	l.count++
 }
 
+// Time complexity: O(N), O(N*L) for strings, where L is len(string)
+// Memory complexity: O(1)
 func (l *OrderedList[T]) Find(n T) (Node[T], error) {
 	var zero Node[T]
 
@@ -93,6 +97,8 @@ func (l *OrderedList[T]) Find(n T) (Node[T], error) {
 	return zero, ErrNodeNotFound
 }
 
+// Time complexity: O(N), O(N*L) for strings, where L is len(string)
+// Memory complexity: O(1)
 func (l *OrderedList[T]) Delete(n T) {
 	node := l.head
 	for node != nil {
