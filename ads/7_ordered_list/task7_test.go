@@ -1,0 +1,260 @@
+package main
+
+import (
+	"testing"
+)
+
+func TestOrderedList_Count(t *testing.T) {
+	t.Run("Empty list", func(t *testing.T) {
+		l := &OrderedList[int]{}
+
+		if l.Count() != 0 {
+			t.Errorf("Expected 0 elements, got %d", l.Count())
+		}
+	})
+
+	t.Run("After additions", func(t *testing.T) {
+		l := &OrderedList[int]{}
+		l.Add(1)
+		l.Add(2)
+
+		if l.Count() != 2 {
+			t.Errorf("Expected 2 elements, got %d", l.Count())
+		}
+	})
+}
+
+func TestOrderedList_Add(t *testing.T) {
+	t.Run("Add to empty list", func(t *testing.T) {
+		l := &OrderedList[int]{}
+		l.Add(1)
+
+		if l.Count() != 1 {
+			t.Errorf("Expected 1 element, got %d", l.Count())
+		}
+
+		if l.head.value != 1 || l.tail.value != 1 {
+			t.Errorf("Expected head and tail to be 1")
+		}
+	})
+
+	t.Run("Add multiple elements ascending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+
+		l.Add(3)
+		l.Add(1)
+		l.Add(2)
+
+		if l.Count() != 3 {
+			t.Errorf("Expected 3 elements, got %d", l.Count())
+		}
+
+		if l.head.value != 1 {
+			t.Errorf("Expected head to be 1, got %d", l.head.value)
+		}
+
+		if l.tail.value != 3 {
+			t.Errorf("Expected tail to be 3, got %d", l.tail.value)
+		}
+	})
+
+	t.Run("Add multiple elements descending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: false}
+
+		l.Add(1)
+		l.Add(3)
+		l.Add(2)
+
+		if l.Count() != 3 {
+			t.Errorf("Expected 3 elements, got %d", l.Count())
+		}
+
+		if l.head.value != 3 {
+			t.Errorf("Expected head to be 3, got %d", l.head.value)
+		}
+
+		if l.tail.value != 1 {
+			t.Errorf("Expected tail to be 1, got %d", l.tail.value)
+		}
+	})
+}
+
+func TestOrderedList_Find(t *testing.T) {
+	t.Run("Empty list", func(t *testing.T) {
+		l := &OrderedList[int]{}
+
+		_, err := l.Find(1)
+
+		if err != ErrEmptyList {
+			t.Errorf("Expected ErrEmptyList, got %v", err)
+		}
+	})
+
+	t.Run("Ascending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+
+		l.Add(1)
+		l.Add(3)
+		l.Add(5)
+
+		if node, err := l.Find(3); err != nil || node.value != 3 {
+			t.Errorf("Expected 3, got %d, err %v", node.value, err)
+		}
+
+		// non-existing
+		if _, err := l.Find(4); err != ErrNodeNotFound {
+			t.Errorf("Expected ErrNodeNotFound for 4, got %v", err)
+		}
+	})
+
+	t.Run("Descending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: false}
+
+		l.Add(5)
+		l.Add(3)
+		l.Add(1)
+
+		if node, err := l.Find(3); err != nil || node.value != 3 {
+			t.Errorf("Expected 3, got %d, err %v", node.value, err)
+		}
+
+		// non-existing
+		if _, err := l.Find(4); err != ErrNodeNotFound {
+			t.Errorf("Expected ErrNodeNotFound for 4, got %v", err)
+		}
+	})
+}
+
+func TestOrderedList_Delete(t *testing.T) {
+	t.Run("Empty list", func(t *testing.T) {
+		l := &OrderedList[int]{}
+
+		l.Delete(555)
+
+		if l.Count() != 0 {
+			t.Errorf("Expected 0 elements, got %d", l.Count())
+		}
+	})
+
+	t.Run("List with one element", func(t *testing.T) {
+		l := &OrderedList[string]{}
+		l.Add("test")
+
+		if l.Count() != 1 {
+			t.Errorf("Expected 1 element in the list, got %d", l.Count())
+		}
+
+		l.Delete("test")
+
+		if l.Count() != 0 {
+			t.Errorf("Expected 0 elements after delete, got %d", l.Count())
+		}
+
+		if l.head != nil || l.tail != nil {
+			t.Errorf("Head and tail are expected to be nil and nil, got %v and %v", l.head, l.tail)
+		}
+	})
+
+	t.Run("Delete head and tail", func(t *testing.T) {
+		l := &OrderedList[int]{} // descending
+		l.Add(1)
+		l.Add(2)
+		l.Add(3) // 3 (head) <-> 2 <-> 1 (tail)
+
+		l.Delete(3)
+
+		if l.Count() != 2 {
+			t.Errorf("Expected 2 elements after head deletion, got %d", l.Count())
+		}
+
+		if l.head.value != 2 {
+			t.Errorf("Expected new head value is 2, got %d", l.head.value)
+		}
+
+		l.Delete(1)
+
+		if l.Count() != 1 {
+			t.Errorf("Expected 1 elements after tail deletion, got %d", l.Count())
+		}
+
+		if l.tail.value != 2 {
+			t.Errorf("Expected new tail value is 2, got %d", l.tail.value)
+		}
+	})
+}
+
+func TestOrderedList_Clear(t *testing.T) {
+	t.Run("Clear list with elements and set ascending", func(t *testing.T) {
+		l := &OrderedList[int]{}
+		l.Add(1)
+		l.Add(2)
+
+		l.Clear(true)
+
+		if l.Count() != 0 {
+			t.Errorf("Expected 0 elements after clear, got %d", l.Count())
+		}
+
+		if l.head != nil || l.tail != nil {
+			t.Errorf("Expected head and tail to be nil after clear")
+		}
+
+		if !l.ascending {
+			t.Errorf("Expected ascending to be true, got %v", l.ascending)
+		}
+	})
+
+	t.Run("Clear list with elements and set descending", func(t *testing.T) {
+		l := &OrderedList[int]{}
+		l.Add(1)
+		l.Add(2)
+
+		l.Clear(false)
+
+		if l.Count() != 0 {
+			t.Errorf("Expected 0 elements after clear, got %d", l.Count())
+		}
+
+		if l.head != nil || l.tail != nil {
+			t.Errorf("Expected head and tail to be nil after clear")
+		}
+
+		if l.ascending {
+			t.Errorf("Expected ascending to be false, got %v", l.ascending)
+		}
+	})
+}
+
+func TestOrderedList_Compare(t *testing.T) {
+	t.Run("Ascending is true", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+
+		if l.Compare(1, 2) != -1 {
+			t.Errorf("Expected -1 for 1 < 2, got %d", l.Compare(1, 2))
+		}
+
+		if l.Compare(2, 1) != 1 {
+			t.Errorf("Expected 1 for 2 > 1, got %d", l.Compare(2, 1))
+		}
+
+		if l.Compare(1, 1) != 0 {
+			t.Errorf("Expected 0 for 1 == 1, got %d", l.Compare(1, 1))
+		}
+	})
+
+	t.Run("Ascending is false", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: false}
+
+		if l.Compare(1, 2) != 1 {
+			t.Errorf("Expected 1 for 1 < 2 in descending, got %d", l.Compare(1, 2))
+		}
+
+		if l.Compare(2, 1) != -1 {
+			t.Errorf("Expected -1 for 2 > 1 in descending, got %d", l.Compare(2, 1))
+		}
+
+		if l.Compare(1, 1) != 0 {
+			t.Errorf("Expected 0 for 1 == 1 in descending, got %d", l.Compare(1, 1))
+		}
+	})
+}
