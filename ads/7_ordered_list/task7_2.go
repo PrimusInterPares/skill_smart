@@ -46,11 +46,11 @@ func (l *OrderedList[T]) RemoveDuplicates() {
 // Time complexity: O(N)
 // Memory complexity: O(N)
 func MergeOrderedLists[T constraints.Ordered](list1, list2 *OrderedList[T]) (*OrderedList[T], error) {
-	if list1.ascending != list2.ascending {
+	if list1._ascending != list2._ascending {
 		return &OrderedList[T]{}, ErrOrderingMismatch
 	}
 
-	merged := &OrderedList[T]{ascending: list1.ascending}
+	merged := &OrderedList[T]{_ascending: list1._ascending}
 
 	node1 := list1.head
 	node2 := list2.head
@@ -106,7 +106,7 @@ func (l *OrderedList[T]) ContainsSublist(sublist *OrderedList[T]) bool {
 	if l.Count() < sublist.Count() {
 		return false
 	}
-	if l.ascending != sublist.ascending {
+	if l._ascending != sublist._ascending {
 		return false
 	}
 
@@ -116,7 +116,7 @@ func (l *OrderedList[T]) ContainsSublist(sublist *OrderedList[T]) bool {
 	for node != nil {
 		compare := l.Compare(node.value, sub.value)
 		// текущий элемент l уже больше (или меньше) начала sublist
-		if (l.ascending && compare > 0) || (!l.ascending && compare < 0) {
+		if (l._ascending && compare > 0) || (!l._ascending && compare < 0) {
 			break
 		}
 		if nodeCountLeft < sublist.Count() {
@@ -203,21 +203,21 @@ type SkipNode[T constraints.Ordered] struct {
 }
 
 type SkipList[T constraints.Ordered] struct {
-	head      *SkipNode[T]
-	level     int // текущая максимальная высота
-	count     int
-	ascending bool
-	maxLevel  int
+	head       *SkipNode[T]
+	level      int // текущая максимальная высота
+	count      int
+	_ascending bool
+	maxLevel   int
 }
 
-func NewSkipList[T constraints.Ordered](ascending bool) *SkipList[T] {
+func NewSkipList[T constraints.Ordered](_ascending bool) *SkipList[T] {
 	return &SkipList[T]{
 		head: &SkipNode[T]{
 			next: make([]*SkipNode[T], maxLevel),
 			span: make([]int, maxLevel),
 		},
-		ascending: ascending,
-		maxLevel:  maxLevel,
+		_ascending: _ascending,
+		maxLevel:   maxLevel,
 	}
 }
 
@@ -361,7 +361,7 @@ func (l *SkipList[T]) findUpdateArray(value T) (update []*SkipNode[T], rank []in
 		for node.next[lev] != nil {
 			compare := l.Compare(node.next[lev].value, value)
 
-			if !l.ascending {
+			if !l._ascending {
 				compare = -compare
 			}
 
@@ -405,7 +405,7 @@ func (l *SkipList[T]) Compare(v1, v2 T) int {
 }
 
 // Рефлексия
-// Как приятно, что я почти всё реализовал как Вы пишете.
+// Очень приятно, что я почти всё реализовал, как Вы пишете.
 // Разница только в том, что у меня очередь на основе slice, и для разворота очереди я переприсвоил значения в обратном порядке (для ссылочных типов перезапишет указатели).
 
 

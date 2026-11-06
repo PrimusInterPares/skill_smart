@@ -21,7 +21,7 @@ type Node[T constraints.Ordered] struct {
 type OrderedList[T constraints.Ordered] struct {
 	head      *Node[T]
 	tail      *Node[T]
-	ascending bool
+	_ascending bool
 	count     int
 }
 
@@ -139,7 +139,7 @@ func (l *OrderedList[T]) Clear(asc bool) {
 	l.head = nil
 	l.tail = nil
 	l.count = 0
-	l.ascending = asc
+	l._ascending = asc
 }
 
 func (l *OrderedList[T]) Compare(v1, v2 T) int {
@@ -156,7 +156,7 @@ func (l *OrderedList[T]) Compare(v1, v2 T) int {
 			result = +1
 		}
 
-		if !l.ascending {
+		if !l._ascending {
 			return -result
 		}
 
@@ -169,7 +169,7 @@ func (l *OrderedList[T]) Compare(v1, v2 T) int {
 		result = +1
 	}
 
-	if !l.ascending {
+	if !l._ascending {
 		return -result
 	}
 

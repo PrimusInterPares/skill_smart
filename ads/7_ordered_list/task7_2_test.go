@@ -33,7 +33,7 @@ func TestOrderedList_RemoveDuplicates(t *testing.T) {
 	})
 
 	t.Run("No duplicates ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
@@ -48,7 +48,7 @@ func TestOrderedList_RemoveDuplicates(t *testing.T) {
 	})
 
 	t.Run("Duplicates ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(1)
 		l.Add(2)
@@ -68,7 +68,7 @@ func TestOrderedList_RemoveDuplicates(t *testing.T) {
 	})
 
 	t.Run("Duplicates descending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 		l.Add(3)
 		l.Add(3)
 		l.Add(2)
@@ -88,7 +88,7 @@ func TestOrderedList_RemoveDuplicates(t *testing.T) {
 	})
 
 	t.Run("Multiple consecutive duplicates", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(1)
 		l.Add(1)
@@ -108,7 +108,7 @@ func TestOrderedList_RemoveDuplicates(t *testing.T) {
 	})
 
 	t.Run("All elements are duplicates", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(5)
 		l.Add(5)
 		l.Add(5)
@@ -126,7 +126,7 @@ func TestOrderedList_RemoveDuplicates(t *testing.T) {
 	})
 
 	t.Run("String duplicates", func(t *testing.T) {
-		l := &OrderedList[string]{ascending: true}
+		l := &OrderedList[string]{_ascending: true}
 		l.Add("a")
 		l.Add("a")
 		l.Add("b")
@@ -143,8 +143,8 @@ func TestOrderedList_RemoveDuplicates(t *testing.T) {
 
 func TestMergeOrderedLists(t *testing.T) {
 	t.Run("Empty lists", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: true}
-		list2 := &OrderedList[int]{ascending: true}
+		list1 := &OrderedList[int]{_ascending: true}
+		list2 := &OrderedList[int]{_ascending: true}
 
 		merged, err := MergeOrderedLists(list1, list2)
 		if err != nil {
@@ -158,12 +158,12 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("One empty list ascending", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: true}
+		list1 := &OrderedList[int]{_ascending: true}
 		list1.Add(1)
 		list1.Add(3)
 		list1.Add(5)
 
-		list2 := &OrderedList[int]{ascending: true}
+		list2 := &OrderedList[int]{_ascending: true}
 
 		merged, err := MergeOrderedLists(list1, list2)
 		if err != nil {
@@ -180,12 +180,12 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("One empty list descending", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: false}
+		list1 := &OrderedList[int]{_ascending: false}
 		list1.Add(5)
 		list1.Add(3)
 		list1.Add(1)
 
-		list2 := &OrderedList[int]{ascending: false}
+		list2 := &OrderedList[int]{_ascending: false}
 
 		merged, err := MergeOrderedLists(list1, list2)
 		if err != nil {
@@ -202,12 +202,12 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("Both lists with elements ascending", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: true}
+		list1 := &OrderedList[int]{_ascending: true}
 		list1.Add(1)
 		list1.Add(3)
 		list1.Add(5)
 
-		list2 := &OrderedList[int]{ascending: true}
+		list2 := &OrderedList[int]{_ascending: true}
 		list2.Add(2)
 		list2.Add(4)
 		list2.Add(6)
@@ -237,12 +237,12 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("Both lists with elements descending", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: false}
+		list1 := &OrderedList[int]{_ascending: false}
 		list1.Add(6)
 		list1.Add(4)
 		list1.Add(2)
 
-		list2 := &OrderedList[int]{ascending: false}
+		list2 := &OrderedList[int]{_ascending: false}
 		list2.Add(5)
 		list2.Add(3)
 		list2.Add(1)
@@ -272,12 +272,12 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("Overlapping values ascending", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: true}
+		list1 := &OrderedList[int]{_ascending: true}
 		list1.Add(1)
 		list1.Add(3)
 		list1.Add(5)
 
-		list2 := &OrderedList[int]{ascending: true}
+		list2 := &OrderedList[int]{_ascending: true}
 		list2.Add(2)
 		list2.Add(3)
 		list2.Add(4)
@@ -307,11 +307,11 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("Mismatched ordering", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: true}
+		list1 := &OrderedList[int]{_ascending: true}
 		list1.Add(1)
 		list1.Add(2)
 
-		list2 := &OrderedList[int]{ascending: false}
+		list2 := &OrderedList[int]{_ascending: false}
 		list2.Add(3)
 		list2.Add(4)
 
@@ -325,10 +325,10 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("Single element lists ascending", func(t *testing.T) {
-		list1 := &OrderedList[int]{ascending: true}
+		list1 := &OrderedList[int]{_ascending: true}
 		list1.Add(5)
 
-		list2 := &OrderedList[int]{ascending: true}
+		list2 := &OrderedList[int]{_ascending: true}
 		list2.Add(3)
 
 		merged, err := MergeOrderedLists(list1, list2)
@@ -346,11 +346,11 @@ func TestMergeOrderedLists(t *testing.T) {
 	})
 
 	t.Run("String lists ascending", func(t *testing.T) {
-		list1 := &OrderedList[string]{ascending: true}
+		list1 := &OrderedList[string]{_ascending: true}
 		list1.Add("apple")
 		list1.Add("cherry")
 
-		list2 := &OrderedList[string]{ascending: true}
+		list2 := &OrderedList[string]{_ascending: true}
 		list2.Add("banana")
 		list2.Add("date")
 
@@ -381,11 +381,11 @@ func TestMergeOrderedLists(t *testing.T) {
 
 func TestOrderedList_ContainsSublist(t *testing.T) {
 	t.Run("Empty sublist in non-empty list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 
 		if !l.ContainsSublist(sub) {
 			t.Errorf("Expected empty list to be a sublist of any list")
@@ -393,8 +393,8 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Empty main list and empty sublist", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
-		sub := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 
 		if !l.ContainsSublist(sub) {
 			t.Errorf("Expected empty list to contain empty sublist")
@@ -402,13 +402,13 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist at the beginning", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
 		l.Add(4)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(1)
 		sub.Add(2)
 
@@ -418,13 +418,13 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist in the middle", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(10)
 		l.Add(20)
 		l.Add(30)
 		l.Add(40)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(20)
 		sub.Add(30)
 
@@ -434,12 +434,12 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist at the end", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(2)
 		sub.Add(3)
 
@@ -449,11 +449,11 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist equals main list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(5)
 		l.Add(6)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(5)
 		sub.Add(6)
 
@@ -463,12 +463,12 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist not found", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(3)
 		l.Add(5)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(2)
 		sub.Add(3)
 
@@ -478,10 +478,10 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist larger than main list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(1)
 		sub.Add(2)
 
@@ -491,11 +491,11 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Mismatched ordering", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 
-		sub := &OrderedList[int]{ascending: false}
+		sub := &OrderedList[int]{_ascending: false}
 		sub.Add(1)
 		sub.Add(2)
 
@@ -505,12 +505,12 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Single element sublist found", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(10)
 		l.Add(20)
 		l.Add(30)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(20)
 
 		if !l.ContainsSublist(sub) {
@@ -519,12 +519,12 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("String lists", func(t *testing.T) {
-		l := &OrderedList[string]{ascending: true}
+		l := &OrderedList[string]{_ascending: true}
 		l.Add("apple")
 		l.Add("banana")
 		l.Add("cherry")
 
-		sub := &OrderedList[string]{ascending: true}
+		sub := &OrderedList[string]{_ascending: true}
 		sub.Add("banana")
 		sub.Add("cherry")
 
@@ -534,14 +534,14 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist with duplicates in main list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(2)
 		l.Add(2)
 		l.Add(3)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(2)
 		sub.Add(2)
 
@@ -551,12 +551,12 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Single element sublist not found", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(3)
 		l.Add(5)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(2)
 
 		if l.ContainsSublist(sub) {
@@ -565,9 +565,9 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Sublist larger than main list (empty main)", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(1)
 
 		if l.ContainsSublist(sub) {
@@ -576,7 +576,7 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 	})
 
 	t.Run("Complex overlap with duplicates", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(1)
 		l.Add(2)
@@ -584,7 +584,7 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 		l.Add(3)
 		l.Add(4)
 
-		sub := &OrderedList[int]{ascending: true}
+		sub := &OrderedList[int]{_ascending: true}
 		sub.Add(1)
 		sub.Add(2)
 		sub.Add(3)
@@ -612,7 +612,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("Single element", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(5)
 
 		val, err := l.MostFrequentVal()
@@ -626,7 +626,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("All elements unique ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
@@ -643,7 +643,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("All elements unique descending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 		l.Add(3)
 		l.Add(2)
 		l.Add(1)
@@ -659,7 +659,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("One element appears most frequently ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(2)
@@ -677,7 +677,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("One element appears most frequently descending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 		l.Add(3)
 		l.Add(2)
 		l.Add(2)
@@ -695,7 +695,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("Multiple elements with same max frequency", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(1)
 		l.Add(2)
@@ -714,7 +714,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("All elements are the same", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(5)
 		l.Add(5)
 		l.Add(5)
@@ -731,7 +731,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("Two elements with different frequencies", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(1)
 		l.Add(1)
@@ -748,7 +748,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("Last element is most frequent", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
@@ -766,7 +766,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("String list with duplicates", func(t *testing.T) {
-		l := &OrderedList[string]{ascending: true}
+		l := &OrderedList[string]{_ascending: true}
 		l.Add("apple")
 		l.Add("banana")
 		l.Add("banana")
@@ -784,7 +784,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("String list all unique", func(t *testing.T) {
-		l := &OrderedList[string]{ascending: true}
+		l := &OrderedList[string]{_ascending: true}
 		l.Add("apple")
 		l.Add("banana")
 		l.Add("cherry")
@@ -800,7 +800,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("Large frequency difference", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(2)
@@ -823,7 +823,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("Two elements only both same", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(7)
 		l.Add(7)
 
@@ -838,7 +838,7 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 	})
 
 	t.Run("Two elements only different", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(7)
 		l.Add(8)
 
@@ -864,10 +864,10 @@ func validateSkipListIntegrity[T constraints.Ordered](t *testing.T, l *SkipList[
 		count++
 
 		if prev != nil {
-			if l.ascending && l.Compare(prev.value, node.value) > 0 {
+			if l._ascending && l.Compare(prev.value, node.value) > 0 {
 				t.Errorf("Ordering violated (asc): %v > %v", prev.value, node.value)
 			}
-			if !l.ascending && l.Compare(prev.value, node.value) < 0 {
+			if !l._ascending && l.Compare(prev.value, node.value) < 0 {
 				t.Errorf("Ordering violated (desc): %v < %v", prev.value, node.value)
 			}
 		}
@@ -905,8 +905,8 @@ func validateSkipListIntegrity[T constraints.Ordered](t *testing.T, l *SkipList[
 }
 
 type referenceList[T constraints.Ordered] struct {
-	items     []T
-	ascending bool
+	items      []T
+	_ascending bool
 }
 
 func (r *referenceList[T]) add(less func(T, T) int, val T) {
@@ -915,7 +915,7 @@ func (r *referenceList[T]) add(less func(T, T) int, val T) {
 	sort.Slice(r.items, func(i, j int) bool {
 		compare := less(r.items[i], r.items[j])
 
-		if r.ascending {
+		if r._ascending {
 			return compare < 0
 		}
 
@@ -1201,7 +1201,7 @@ func TestSkipList_StressRandomOperations(t *testing.T) {
 		rng := rand.New(rand.NewSource(seed))
 
 		l := NewSkipList[int](true)
-		ref := &referenceList[int]{ascending: true}
+		ref := &referenceList[int]{_ascending: true}
 
 		// 500 случайных операций (Add / Delete / validateSkipListWithValues)
 		for range 500 {
@@ -1240,7 +1240,7 @@ func TestSkipList_StressRandomOperations(t *testing.T) {
 		rng := rand.New(rand.NewSource(1337))
 
 		l := NewSkipList[int](false)
-		ref := &referenceList[int]{ascending: false}
+		ref := &referenceList[int]{_ascending: false}
 
 		for range 500 {
 			op := rng.Intn(10)

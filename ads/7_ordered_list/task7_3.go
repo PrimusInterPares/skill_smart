@@ -75,7 +75,7 @@ func TestOrderedList_Add(t *testing.T) {
 	})
 
 	t.Run("Add multiple elements into ascending list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 
 		l.Add(3)
 		l.Add(1)
@@ -97,7 +97,7 @@ func TestOrderedList_Add(t *testing.T) {
 	})
 
 	t.Run("Add multiple elements into descending list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 
 		l.Add(1)
 		l.Add(3)
@@ -117,7 +117,7 @@ func TestOrderedList_Add(t *testing.T) {
 	})
 
 	t.Run("Add duplicate values ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 
 		l.Add(2)
 		l.Add(2)
@@ -132,7 +132,7 @@ func TestOrderedList_Add(t *testing.T) {
 	})
 
 	t.Run("Add duplicate values descending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 
 		l.Add(5)
 		l.Add(5)
@@ -147,7 +147,7 @@ func TestOrderedList_Add(t *testing.T) {
 	})
 
 	t.Run("Add smaller element to single-element ascending list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(5)
 
 		l.Add(2)
@@ -163,7 +163,7 @@ func TestOrderedList_Add(t *testing.T) {
 		}
 	})
 	t.Run("Add larger element to single-element ascending list", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(2)
 
 		l.Add(5)
@@ -192,7 +192,7 @@ func TestOrderedList_Find(t *testing.T) {
 	})
 
 	t.Run("Ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 
 		l.Add(1)
 		l.Add(3)
@@ -207,7 +207,7 @@ func TestOrderedList_Find(t *testing.T) {
 	})
 
 	t.Run("Descending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 
 		l.Add(5)
 		l.Add(1)
@@ -222,7 +222,7 @@ func TestOrderedList_Find(t *testing.T) {
 	})
 
 	t.Run("Find among duplicates ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(2)
 		l.Add(2)
 		l.Add(2)
@@ -234,7 +234,7 @@ func TestOrderedList_Find(t *testing.T) {
 	})
 
 	t.Run("Find among duplicates descending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 		l.Add(7)
 		l.Add(7)
 		l.Add(7)
@@ -304,7 +304,7 @@ func TestOrderedList_Delete(t *testing.T) {
 	})
 
 	t.Run("Delete middle element", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
@@ -326,7 +326,7 @@ func TestOrderedList_Delete(t *testing.T) {
 	})
 
 	t.Run("Delete non-existent element", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
@@ -339,7 +339,7 @@ func TestOrderedList_Delete(t *testing.T) {
 	})
 
 	t.Run("Delete all elements one by one", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 		l.Add(1)
 		l.Add(2)
 		l.Add(3)
@@ -358,7 +358,7 @@ func TestOrderedList_Delete(t *testing.T) {
 }
 
 func TestOrderedList_Clear(t *testing.T) {
-	t.Run("Clear list with elements and set ascending", func(t *testing.T) {
+	t.Run("Clear list with elements and set _ascending", func(t *testing.T) {
 		l := &OrderedList[int]{}
 		l.Add(1)
 		l.Add(2)
@@ -373,8 +373,8 @@ func TestOrderedList_Clear(t *testing.T) {
 			t.Errorf("Expected head and tail to be nil after clear")
 		}
 
-		if !l.ascending {
-			t.Errorf("Expected ascending to be true, got %v", l.ascending)
+		if !l._ascending {
+			t.Errorf("Expected _ascending to be true, got %v", l._ascending)
 		}
 	})
 
@@ -393,8 +393,8 @@ func TestOrderedList_Clear(t *testing.T) {
 			t.Errorf("Expected head and tail to be nil after clear")
 		}
 
-		if l.ascending {
-			t.Errorf("Expected ascending to be false, got %v", l.ascending)
+		if l._ascending {
+			t.Errorf("Expected _ascending to be false, got %v", l._ascending)
 		}
 	})
 
@@ -409,7 +409,7 @@ func TestOrderedList_Clear(t *testing.T) {
 		if l.head != nil || l.tail != nil {
 			t.Errorf("Expected head and tail to be nil")
 		}
-		if !l.ascending {
+		if !l._ascending {
 			t.Errorf("Expected ascending to be true")
 		}
 	})
@@ -417,7 +417,7 @@ func TestOrderedList_Clear(t *testing.T) {
 
 func TestOrderedList_Compare(t *testing.T) {
 	t.Run("Int ascending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: true}
+		l := &OrderedList[int]{_ascending: true}
 
 		if l.Compare(1, 2) != -1 {
 			t.Errorf("Expected -1 for 1 < 2, got %d", l.Compare(1, 2))
@@ -431,7 +431,7 @@ func TestOrderedList_Compare(t *testing.T) {
 	})
 
 	t.Run("Int descending", func(t *testing.T) {
-		l := &OrderedList[int]{ascending: false}
+		l := &OrderedList[int]{_ascending: false}
 
 		if l.Compare(1, 2) != 1 {
 			t.Errorf("Expected 1 for 1 < 2 in descending, got %d", l.Compare(1, 2))
@@ -445,7 +445,7 @@ func TestOrderedList_Compare(t *testing.T) {
 	})
 
 	t.Run("String ascending", func(t *testing.T) {
-		l := &OrderedList[string]{ascending: true}
+		l := &OrderedList[string]{_ascending: true}
 
 		if l.Compare("a", "b") != -1 {
 			t.Errorf("Expected -1 for 'a' < 'b', got %d", l.Compare("a", "b"))
@@ -459,7 +459,7 @@ func TestOrderedList_Compare(t *testing.T) {
 	})
 
 	t.Run("String descending", func(t *testing.T) {
-		l := &OrderedList[string]{ascending: false}
+		l := &OrderedList[string]{_ascending: false}
 
 		if l.Compare("a", "b") != 1 {
 			t.Errorf("Expected 1 for 'a' < 'b' in descending, got %d", l.Compare("a", "b"))
@@ -472,5 +472,3 @@ func TestOrderedList_Compare(t *testing.T) {
 		}
 	})
 }
-
-
