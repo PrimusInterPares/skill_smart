@@ -403,3 +403,5 @@ func (l *SkipList[T]) Compare(v1, v2 T) int {
 
 	return result
 }
+
+
