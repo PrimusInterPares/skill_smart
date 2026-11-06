@@ -150,10 +150,37 @@ func (l *OrderedList[T]) ContainsSublist(sublist *OrderedList[T]) bool {
 
 // Номер задачи из задания: 11
 // Краткое название: метод, который находит наиболее часто встречающееся значение в списке
-// Time complexity: O()
-// Memory complexity: O()
-func (l *OrderedList[T]) MostFrequentVal() T {
-	var zero T
+// Time complexity: O(N)
+// Memory complexity: O(1)
+func (l *OrderedList[T]) MostFrequentVal() (T, error) {
+	if l.Count() == 0 {
+		var zero T
+		return zero, ErrEmptyList
+	}
 
-	return zero
+	node := l.head
+	mostFreqVal := node.value
+	maxCount := 1
+	currentCount := 1
+	currentVal := node.value
+
+	for node := l.head.next; node != nil; node = node.next {
+		if l.Compare(node.value, currentVal) == 0 {
+			currentCount++
+		} else {
+			if currentCount > maxCount {
+				maxCount = currentCount
+				mostFreqVal = currentVal
+			}
+
+			currentVal = node.value
+			currentCount = 1
+		}
+	}
+
+	if currentCount > maxCount {
+		mostFreqVal = currentVal
+	}
+
+	return mostFreqVal, nil
 }

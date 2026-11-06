@@ -591,3 +591,261 @@ func TestOrderedList_ContainsSublist(t *testing.T) {
 		}
 	})
 }
+
+func TestOrderedList_MostFrequentVal(t *testing.T) {
+	t.Run("Empty list", func(t *testing.T) {
+		l := &OrderedList[int]{}
+
+		val, err := l.MostFrequentVal()
+
+		if err != ErrEmptyList {
+			t.Errorf("Expected ErrEmptyList, got %v", err)
+		}
+
+		var zero int
+		if val != zero {
+			t.Errorf("Expected zero value, got %d", val)
+		}
+	})
+
+	t.Run("Single element", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(5)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 5 {
+			t.Errorf("Expected 5, got %d", val)
+		}
+	})
+
+	t.Run("All elements unique ascending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+		l.Add(3)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		// первый элемент должен вернуться, так как все встречаются одинаково
+		if val != 1 {
+			t.Errorf("Expected 1, got %d", val)
+		}
+	})
+
+	t.Run("All elements unique descending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: false}
+		l.Add(3)
+		l.Add(2)
+		l.Add(1)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 3 {
+			t.Errorf("Expected 3, got %d", val)
+		}
+	})
+
+	t.Run("One element appears most frequently ascending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(3)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 2 {
+			t.Errorf("Expected 2, got %d", val)
+		}
+	})
+
+	t.Run("One element appears most frequently descending", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: false}
+		l.Add(3)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(1)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 2 {
+			t.Errorf("Expected 2, got %d", val)
+		}
+	})
+
+	t.Run("Multiple elements with same max frequency", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(1)
+		l.Add(2)
+		l.Add(2)
+		l.Add(3)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		// должен вернуть первый элемент с максимальной частотой
+		if val != 1 {
+			t.Errorf("Expected 1, got %d", val)
+		}
+	})
+
+	t.Run("All elements are the same", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(5)
+		l.Add(5)
+		l.Add(5)
+		l.Add(5)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 5 {
+			t.Errorf("Expected 5, got %d", val)
+		}
+	})
+
+	t.Run("Two elements with different frequencies", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(1)
+		l.Add(1)
+		l.Add(2)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 1 {
+			t.Errorf("Expected 1, got %d", val)
+		}
+	})
+
+	t.Run("Last element is most frequent", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+		l.Add(3)
+		l.Add(3)
+		l.Add(3)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 3 {
+			t.Errorf("Expected 3, got %d", val)
+		}
+	})
+
+	t.Run("String list with duplicates", func(t *testing.T) {
+		l := &OrderedList[string]{ascending: true}
+		l.Add("apple")
+		l.Add("banana")
+		l.Add("banana")
+		l.Add("banana")
+		l.Add("cherry")
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != "banana" {
+			t.Errorf("Expected 'banana', got '%s'", val)
+		}
+	})
+
+	t.Run("String list all unique", func(t *testing.T) {
+		l := &OrderedList[string]{ascending: true}
+		l.Add("apple")
+		l.Add("banana")
+		l.Add("cherry")
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != "apple" {
+			t.Errorf("Expected 'apple', got '%s'", val)
+		}
+	})
+
+	t.Run("Large frequency difference", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(1)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(2)
+		l.Add(3)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 2 {
+			t.Errorf("Expected 2, got %d", val)
+		}
+	})
+
+	t.Run("Two elements only both same", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(7)
+		l.Add(7)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 7 {
+			t.Errorf("Expected 7, got %d", val)
+		}
+	})
+
+	t.Run("Two elements only different", func(t *testing.T) {
+		l := &OrderedList[int]{ascending: true}
+		l.Add(7)
+		l.Add(8)
+
+		val, err := l.MostFrequentVal()
+
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		if val != 7 {
+			t.Errorf("Expected 7, got %d", val)
+		}
+	})
+}
