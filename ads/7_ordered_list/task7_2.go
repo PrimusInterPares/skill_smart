@@ -404,4 +404,7 @@ func (l *SkipList[T]) Compare(v1, v2 T) int {
 	return result
 }
 
+// Рефлексия
+// Как приятно, что я всё реализовал именно так.
+
 
