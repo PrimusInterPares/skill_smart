@@ -1,6 +1,9 @@
 package main
 
 import (
+	"constraints"
+	"math/rand"
+	"sort"
 	"testing"
 )
 
@@ -846,6 +849,419 @@ func TestOrderedList_MostFrequentVal(t *testing.T) {
 		}
 		if val != 7 {
 			t.Errorf("Expected 7, got %d", val)
+		}
+	})
+}
+
+func validateSkipListIntegrity[T constraints.Ordered](t *testing.T, l *SkipList[T]) {
+	t.Helper()
+
+	// проверка count и порядка на Level 0
+	count := 0
+	var prev *SkipNode[T]
+
+	for node := l.head.next[0]; node != nil; node = node.next[0] {
+		count++
+
+		if prev != nil {
+			if l.ascending && l.Compare(prev.value, node.value) > 0 {
+				t.Errorf("Ordering violated (asc): %v > %v", prev.value, node.value)
+			}
+			if !l.ascending && l.Compare(prev.value, node.value) < 0 {
+				t.Errorf("Ordering violated (desc): %v < %v", prev.value, node.value)
+			}
+		}
+
+		prev = node
+	}
+
+	if count != l.count {
+		t.Errorf("Count mismatch: expected %d, got %d", l.count, count)
+	}
+
+	// проверка span на всех уровнях
+	for lev := range l.level {
+		curr := l.head
+		spanSum := 0
+
+		for {
+			if curr.span[lev] <= 0 {
+				t.Errorf("Invalid span <= 0 at level %d", lev)
+			}
+
+			spanSum += curr.span[lev]
+
+			if curr.next[lev] == nil {
+				break
+			}
+
+			curr = curr.next[lev]
+		}
+
+		if spanSum != count+1 {
+			t.Errorf("Span sum mismatch at level %d: expected %d, got %d", lev, count+1, spanSum)
+		}
+	}
+}
+
+type referenceList[T constraints.Ordered] struct {
+	items     []T
+	ascending bool
+}
+
+func (r *referenceList[T]) add(less func(T, T) int, val T) {
+	r.items = append(r.items, val)
+
+	sort.Slice(r.items, func(i, j int) bool {
+		compare := less(r.items[i], r.items[j])
+
+		if r.ascending {
+			return compare < 0
+		}
+
+		return compare > 0
+	})
+}
+
+func (r *referenceList[T]) delete(less func(T, T) int, val T) bool {
+	for i, item := range r.items {
+		if less(item, val) == 0 {
+			r.items = append(r.items[:i], r.items[i+1:]...)
+
+			return true
+		}
+	}
+
+	return false
+}
+
+func validateSkipListWithValues[T constraints.Ordered](t *testing.T, l *SkipList[T], expectedItems []T) {
+	t.Helper()
+
+	var actualItems []T
+	for node := l.head.next[0]; node != nil; node = node.next[0] {
+		actualItems = append(actualItems, node.value)
+	}
+
+	if len(actualItems) != l.count {
+		t.Errorf("Level 0 count expecetd: %d, got %d", l.count, len(actualItems))
+	}
+
+	if len(expectedItems) != len(actualItems) {
+		t.Fatalf("Expected length: %d, got: %d", len(expectedItems), len(actualItems))
+	}
+
+	for i := range expectedItems {
+		if l.Compare(expectedItems[i], actualItems[i]) != 0 {
+			t.Errorf("Mismatch at index %d: expected %v, got %v", i, expectedItems[i], actualItems[i])
+		}
+	}
+
+	// 2. Строгая проверка корректности span на абсолютно всех уровнях
+	for lev := range l.level {
+		curr := l.head
+		spanSum := 0
+		nodeCount := 0
+
+		for {
+			if curr.span[lev] <= 0 {
+				t.Errorf("Incorrect or negative span (%d) at level %d", curr.span[lev], lev)
+			}
+
+			spanSum += curr.span[lev]
+
+			if curr.next[lev] == nil {
+				break
+			}
+
+			// сумма span шагов должна совпадать с физическим расстоянием на базовом уровне 0
+			// Идем по Level 0 и считаем шаги до следующего узла текущего уровня
+			stepsOnLevel0 := 0
+			for l0 := curr; l0 != curr.next[lev]; l0 = l0.next[0] {
+				stepsOnLevel0++
+			}
+			if curr.span[lev] != stepsOnLevel0 {
+				t.Errorf("Wrong span calculation at level %d of a node with value %v: expected %d, got at Level 0 distance %d",
+					lev, curr.value, curr.span[lev], stepsOnLevel0)
+			}
+
+			curr = curr.next[lev]
+			nodeCount++
+		}
+
+		// сумма всех span на любом уровне должна быть строго равна (количество элементов + 1)
+		if spanSum != len(actualItems)+1 {
+			t.Errorf("Wrong span sum at Level %d: expected %d, got %d", lev, len(actualItems)+1, spanSum)
+		}
+	}
+
+	// 3. Сквозная проверка FindByIndex для каждого элемента
+	for i, expVal := range expectedItems {
+		gotVal, err := l.FindByIndex(i)
+
+		if err != nil {
+			t.Errorf("FindByIndex(%d) returns error: %v", i, err)
+		}
+		if l.Compare(expVal, gotVal) != 0 {
+			t.Errorf("FindByIndex(%d) returns incorret value: expected %v, got %v", i, expVal, gotVal)
+		}
+	}
+}
+func TestSkipList_Add(t *testing.T) {
+	t.Run("Empty list", func(t *testing.T) {
+		l := NewSkipList[int](true)
+
+		l.Add(5)
+
+		if l.count != 1 {
+			t.Errorf("Expected count 1, got %d", l.count)
+		}
+
+		validateSkipListIntegrity(t, l)
+	})
+
+	t.Run("Multiple elements ascending", func(t *testing.T) {
+		l := NewSkipList[int](true)
+
+		for _, v := range []int{5, 2, 8, 1, 9} {
+			l.Add(v)
+		}
+
+		if l.count != 5 {
+			t.Errorf("Expected count 5, got %d", l.count)
+		}
+
+		validateSkipListIntegrity(t, l)
+	})
+
+	t.Run("Multiple elements descending", func(t *testing.T) {
+		l := NewSkipList[int](false)
+
+		for _, v := range []int{5, 2, 8, 1, 9} {
+			l.Add(v)
+		}
+
+		if l.count != 5 {
+			t.Errorf("Expected count 5, got %d", l.count)
+		}
+
+		validateSkipListIntegrity(t, l)
+	})
+
+	t.Run("Duplicates", func(t *testing.T) {
+		l := NewSkipList[int](true)
+
+		l.Add(3)
+		l.Add(3)
+		l.Add(3)
+
+		if l.count != 3 {
+			t.Errorf("Expected count 3, got %d", l.count)
+		}
+
+		validateSkipListIntegrity(t, l)
+	})
+}
+
+func TestSkipList_FindByIndex(t *testing.T) {
+	t.Run("Valid indices", func(t *testing.T) {
+		l := NewSkipList[int](true)
+		for _, v := range []int{10, 20, 30, 40, 50} {
+			l.Add(v)
+		}
+
+		tests := []struct {
+			index    int
+			expected int
+		}{
+			{0, 10},
+			{2, 30},
+			{4, 50},
+		}
+
+		for _, tc := range tests {
+			val, err := l.FindByIndex(tc.index)
+
+			if err != nil {
+				t.Errorf("Index %d: expected no error, got %v", tc.index, err)
+			}
+			if val != tc.expected {
+				t.Errorf("Index %d: expected %d, got %d", tc.index, tc.expected, val)
+			}
+		}
+	})
+
+	t.Run("Out of bounds", func(t *testing.T) {
+		l := NewSkipList[int](true)
+		l.Add(10)
+
+		_, err := l.FindByIndex(-1)
+		if err == nil {
+			t.Errorf("Expected error for index -1, got nil")
+		}
+
+		_, err = l.FindByIndex(5)
+		if err == nil {
+			t.Errorf("Expected error for index 5, got nil")
+		}
+	})
+
+	t.Run("EdgeCases", func(t *testing.T) {
+		l := NewSkipList[int](true)
+
+		// empty list
+		_, err := l.FindByIndex(0)
+		if err != ErrInvalidIndex {
+			t.Errorf("Expected ErrInvalidIndex, got: %v", err)
+		}
+
+		l.Add(10)
+		l.Add(20)
+
+		// invalid incides
+		_, err = l.FindByIndex(2)
+		if err != ErrInvalidIndex {
+			t.Errorf("Expected ErrInvalinIndex, got: %v", err)
+		}
+
+		_, err = l.FindByIndex(-1)
+		if err != ErrInvalidIndex {
+			t.Errorf("Expected ErrInvalinIndex, got: %v", err)
+		}
+	})
+}
+
+func TestSkipList_Delete(t *testing.T) {
+	t.Run("Delete existing element", func(t *testing.T) {
+		l := NewSkipList[int](true)
+		l.Add(10)
+		l.Add(20)
+		l.Add(30)
+
+		deleted := l.Delete(20)
+
+		if !deleted {
+			t.Errorf("Expected true, got false")
+		}
+		if l.count != 2 {
+			t.Errorf("Expected count 2, got %d", l.count)
+		}
+
+		validateSkipListIntegrity(t, l)
+	})
+
+	t.Run("Delete non-existing element", func(t *testing.T) {
+		l := NewSkipList[int](true)
+		l.Add(10)
+		l.Add(30)
+
+		deleted := l.Delete(20)
+
+		if deleted {
+			t.Errorf("Expected false, got true")
+		}
+		if l.count != 2 {
+			t.Errorf("Expected count 2, got %d", l.count)
+		}
+	})
+
+	t.Run("Delete makes list empty", func(t *testing.T) {
+		l := NewSkipList[int](true)
+		l.Add(5)
+
+		l.Delete(5)
+
+		if l.count != 0 {
+			t.Errorf("Expected count 0, got %d", l.count)
+		}
+		if l.level != 1 {
+			t.Errorf("Expected level 1, got %d", l.level)
+		}
+	})
+
+	t.Run("Delete duplicates", func(t *testing.T) {
+		l := NewSkipList[int](true)
+		l.Add(5)
+		l.Add(5)
+		l.Add(5)
+
+		l.Delete(5)
+
+		if l.count != 2 {
+			t.Errorf("Expected count 2, got %d", l.count)
+		}
+
+		validateSkipListIntegrity(t, l)
+	})
+}
+
+func TestSkipList_StressRandomOperations(t *testing.T) {
+	t.Run("Ascending", func(t *testing.T) {
+		seed := int64(42) // фиксируем seed для воспроизводимости в случае падения
+		rng := rand.New(rand.NewSource(seed))
+
+		l := NewSkipList[int](true)
+		ref := &referenceList[int]{ascending: true}
+
+		// 500 случайных операций (Add / Delete / validateSkipListWithValues)
+		for range 500 {
+			op := rng.Intn(10)
+
+			if op < 6 { // 60% вероятность добавления
+				val := rng.Intn(200) // могут быть дубликаты
+
+				l.Add(val)
+				ref.add(l.Compare, val)
+
+			} else if len(ref.items) > 0 { // 40% вероятность удаления
+				// удаляется либо случайный существующий, либо вообще случайное число
+				var val int
+
+				if rng.Float64() < 0.8 {
+					val = ref.items[rng.Intn(len(ref.items))]
+				} else {
+					val = rng.Intn(200)
+				}
+
+				lDeleted := l.Delete(val)
+				refDeleted := ref.delete(l.Compare, val)
+
+				if lDeleted != refDeleted {
+					t.Fatalf("Mismatch on Delete(%d): SkipList=%v, Slice=%v", val, lDeleted, refDeleted)
+				}
+			}
+
+			// проверка структуры на каждой итерации
+			validateSkipListWithValues(t, l, ref.items)
+		}
+	})
+
+	t.Run("Descending", func(t *testing.T) {
+		rng := rand.New(rand.NewSource(1337))
+
+		l := NewSkipList[int](false)
+		ref := &referenceList[int]{ascending: false}
+
+		for range 500 {
+			op := rng.Intn(10)
+
+			if op < 6 {
+				val := rng.Intn(200)
+
+				l.Add(val)
+				ref.add(l.Compare, val)
+			} else if len(ref.items) > 0 {
+				val := ref.items[rng.Intn(len(ref.items))]
+
+				lDeleted := l.Delete(val)
+				refDeleted := ref.delete(l.Compare, val)
+
+				if lDeleted != refDeleted {
+					t.Fatalf("Mismatch on Delete(%d): SkipList=%v, Slice=%v", val, lDeleted, refDeleted)
+				}
+			}
+
+			validateSkipListWithValues(t, l, ref.items)
 		}
 	})
 }
