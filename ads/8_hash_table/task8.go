@@ -53,31 +53,26 @@ func (ht *HashTable) SeekSlot(value string) int {
 	for range ht.size {
 		status := ht.statuses[index]
 
-		if status == statusEmpty {
-			if firstTombstone != -1 {
-				index = firstTombstone // reuse of tombstone met before
-			}
+		if status == statusEmpty && firstTombstone != -1 { // 1. reuse tombstone
+			return firstTombstone
+		}
 
-			return index
+		if status == statusEmpty {
+			return index // 2. use empty slot
 		}
 
 		if status == statusOccupied && ht.slots[index] == value {
-			return index
+			return index // 3. value already exists
 		}
 
 		if status == statusDeleted && firstTombstone == -1 {
-			firstTombstone = index
+			firstTombstone = index // store first tombstone met for reuse
 		}
 
 		index = (index + ht.step) % ht.size
 	}
 
-	// no free slots found but there was a tombstone
-	if firstTombstone != -1 {
-		return firstTombstone
-	}
-
-	return -1
+	return firstTombstone
 }
 
 func (ht *HashTable) Put(value string) int {
