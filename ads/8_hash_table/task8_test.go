@@ -237,3 +237,63 @@ func TestHashTable_Find(t *testing.T) {
 		}
 	})
 }
+
+// go test -bench=BenchmarkHashTableInsert -benchmem
+func BenchmarkHashTableInsert(b *testing.B) {
+	attackKeys := generateDjb2Collisions()
+	tableSize := 4096
+	step := 3
+
+	b.ResetTimer()
+	for b.Loop() {
+		b.StopTimer()
+		ht := Init(tableSize, step)
+		b.StartTimer()
+
+		for _, key := range attackKeys {
+			ht.Put(key)
+		}
+	}
+}
+
+// go test -bench=BenchmarkHashTableFind -benchmem
+func BenchmarkHashTableFind(b *testing.B) {
+	attackKeys := generateDjb2Collisions()
+	tableSize := 4096
+	step := 3
+
+	ht := Init(tableSize, step)
+	for _, key := range attackKeys {
+		ht.Put(key)
+	}
+	lastKey := attackKeys[len(attackKeys)-1]
+
+	b.ResetTimer()
+	for b.Loop() {
+		ht.Find(lastKey)
+	}
+}
+
+// Generates 2^11 (2048) strings which will 100% cause collision in djb2 algorythm
+func generateDjb2Collisions() []string {
+	// base pair which produces equal step in djb2
+	pairs := [][2]string{
+		{"at", "bS"},
+	}
+
+	results := []string{pairs[0][0], pairs[0][1]}
+
+	// Iteratively increase strings length to get 2048 collisions
+	for range 11 {
+		next := make([]string, 2*len(results))
+
+		for _, s := range results {
+			next = append(next, s+pairs[0][0], s+pairs[0][1])
+		}
+
+		results = next
+	}
+	return results
+}
+
+

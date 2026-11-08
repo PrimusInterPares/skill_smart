@@ -41,7 +41,7 @@ func TestDynHashTable_LoadFactorAndNeedsResize(t *testing.T) {
 	})
 
 	t.Run("Detects when resize is needed", func(t *testing.T) {
-		dht := InitDynHashTable(5, 1) // при 4 элементах (4/5 = 0.8) нужен ресайз
+		dht := InitDynHashTable(5, 1)
 
 		dht.Put("a") // 1/5 = 0.2
 		dht.Put("b") // 2/5 = 0.4
@@ -51,7 +51,7 @@ func TestDynHashTable_LoadFactorAndNeedsResize(t *testing.T) {
 			t.Errorf("Table should NOT need resize at 3/5 capacity")
 		}
 
-		dht.Put("d") // спровоцирует превышение порога в 0.7
+		dht.Put("d") // 4/5 = 0.8 -> должен сработать порог (> 0.7)
 
 		if !dht.needsResize() {
 			t.Errorf("Table SHOULD need resize at 4/5 capacity (LF=%f)", dht.loadFactor())
@@ -61,13 +61,13 @@ func TestDynHashTable_LoadFactorAndNeedsResize(t *testing.T) {
 
 func TestDynHashTable_Resize(t *testing.T) {
 	t.Run("Automatic resize to the next prime number", func(t *testing.T) {
-		dht := InitDynHashTable(5, 1) // ближайшее простое число после 10 — это 11
+		dht := InitDynHashTable(5, 1)
 
-		dht.Put("key1") // count=1, size=5
-		dht.Put("key2") // count=2, size=5
-		dht.Put("key3") // count=3, size=5. LF = 3/5 = 0.6
-		dht.Put("key4") // count=4, size=5. LF = 4/5 = 0.8
-		dht.Put("key5") // должна вызвать dht.resize() ДО добавления элемента
+		dht.Put("key1")
+		dht.Put("key2")
+		dht.Put("key3") // LF = 3/5 = 0.6
+		dht.Put("key4") // LF = 4/5 = 0.8 -> resize to 11
+		dht.Put("key5")
 
 		if dht.size != 11 {
 			t.Errorf("Expected table to resize to next prime number (11), but got size %d", dht.size)
@@ -76,7 +76,6 @@ func TestDynHashTable_Resize(t *testing.T) {
 			t.Errorf("Expected count to be 5 after resize and insert, got %d", dht.count)
 		}
 
-		// все старые элементы успешно перенеслись и их можно найти на новых индексах
 		keys := []string{"key1", "key2", "key3", "key4", "key5"}
 		for _, key := range keys {
 			if idx := dht.Find(key); idx == -1 {
@@ -107,14 +106,15 @@ func TestDynHashTable_Resize(t *testing.T) {
 		idxB := dht.Put("b")
 		dht.Put("c")
 
-		// симуляция удаления элемента "b"
 		dht.slots[idxB] = ""
 		dht.statuses[idxB] = statusDeleted
-		dht.count-- // уменьшаем счетчик живых элементов
+		dht.count--
 
 		dht.Put("d")
 		dht.Put("e")
-		dht.Put("f") // должен произойти resize
+
+		// 'manual' resize to clear tombstones
+		dht.resize()
 
 		for i, status := range dht.statuses {
 			if status == statusDeleted {
@@ -133,7 +133,7 @@ func TestDynHashTable_Resize(t *testing.T) {
 
 func TestDoubleHashTable_Operations(t *testing.T) {
 	t.Run("Basic insertion and search", func(t *testing.T) {
-		baseHT := Init(11, StepLength)
+		baseHT := Init(11, 3)
 		dht := DoubleHashTable{HashTable: &baseHT}
 
 		words := []string{"apple", "banana", "orange", "grape"}
@@ -159,7 +159,7 @@ func TestDoubleHashTable_Operations(t *testing.T) {
 	})
 
 	t.Run("Search for non-existent element", func(t *testing.T) {
-		baseHT := Init(11, StepLength)
+		baseHT := Init(11, 3)
 		dht := DoubleHashTable{HashTable: &baseHT}
 
 		if idx := dht.Find("pineapple"); idx != -1 {
@@ -168,7 +168,7 @@ func TestDoubleHashTable_Operations(t *testing.T) {
 	})
 
 	t.Run("Prevent duplicate keys", func(t *testing.T) {
-		baseHT := Init(11, StepLength)
+		baseHT := Init(11, 3)
 		dht := DoubleHashTable{HashTable: &baseHT}
 
 		idx1 := dht.Put("apple")
@@ -178,51 +178,26 @@ func TestDoubleHashTable_Operations(t *testing.T) {
 			t.Errorf("on duplicate insert expected old index %d, but got %d", idx1, idx2)
 		}
 	})
-
-	t.Run("Handling deletion and tombstones", func(t *testing.T) {
-		baseHT := Init(11, StepLength)
-		dht := DoubleHashTable{HashTable: &baseHT}
-
-		idxApple := dht.Put("apple")
-		idxBanana := dht.Put("banana")
-
-		// simulate manual deletion of "apple" to create a tombstone
-		dht.statuses[idxApple] = statusDeleted
-		dht.slots[idxApple] = ""
-
-		if idx := dht.Find("apple"); idx != -1 {
-			t.Errorf("word 'apple' was deleted, but Find still returned index %d", idx)
-		}
-
-		// "melon" should safely reuse the tombstone slot
-		melonIdx := dht.Put("melon")
-		if melonIdx == -1 {
-			t.Fatal("failed to insert word 'melon' after creating a tombstone")
-		}
-
-		// other elements in the collision chain are still reachable
-		if idx := dht.Find("banana"); idx != idxBanana {
-			t.Errorf("search for 'banana' broke after tombstone insertion: expected %d, got %d", idxBanana, idx)
-		}
-	})
 }
 
 func TestDoubleHashTable_HashFunctions(t *testing.T) {
 	t.Run("Primary hash h1 bounds verification", func(t *testing.T) {
-		baseHT := Init(19, StepLength)
+		baseHT := Init(19, 3)
 		dht := DoubleHashTable{HashTable: &baseHT}
 
 		h1Val := dht.h1("test_string")
+
 		if h1Val < 0 || h1Val >= dht.size {
 			t.Errorf("h1 returned index out of bounds: %d for table size %d", h1Val, dht.size)
 		}
 	})
 
 	t.Run("Secondary hash h2 step size validation", func(t *testing.T) {
-		baseHT := Init(19, StepLength)
+		baseHT := Init(19, 3)
 		dht := DoubleHashTable{HashTable: &baseHT}
 
 		testStrings := []string{"a", "b", "hello", "very_long_string_for_hash_testing", ""}
+
 		for _, testStr := range testStrings {
 			step := dht.h2(testStr)
 

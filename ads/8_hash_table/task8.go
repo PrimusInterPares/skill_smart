@@ -1,8 +1,9 @@
 package main
 
 import (
-// "os"
-// "strconv"
+	// "os"
+	"time"
+	// "strconv"
 )
 
 const (
@@ -18,31 +19,39 @@ type HashTable struct {
 	step     int
 	slots    []string
 	statuses []byte
+	salt     uint32
 }
 
 func Init(sz, stp int) HashTable {
+	salt := uint32(sz)*uint32(stp)*0x9e3779b9 + uint32(time.Now().UnixNano())
+
 	ht := HashTable{
 		size:     sz,
 		step:     stp,
 		slots:    make([]string, sz),
 		statuses: make([]byte, sz),
+		salt:     salt,
 	}
 
 	return ht
 }
 
 func (ht *HashTable) HashFun(value string) int {
-	var hash uint32 = 5381
+	hash := ht.salt
 
 	for i := range len(value) {
-		// hash * 33 + c
-		// (hash << 5) -> hash * 2^5 -> hash * 32
-		// (hash * 32) + hash -> 33 * hash
-		hash = ((hash << 5) + hash) + uint32(value[i])
+		hash ^= uint32(value[i])
+		hash *= 16777619 // FNV-1a 32-bit prime multiplier for dynamic bit scattering
 	}
 
-	// limit hash with HashTable.size
-	// 0x7FFFFFFF mask guarantees the value will fit positive int
+	// XORShift mixerto ensure avalanche effect across all bits before taking the modulo
+	hash ^= hash >> 16
+	hash *= 0x85ebca6b
+	hash ^= hash >> 13
+	hash *= 0xc2b2ae35
+	hash ^= hash >> 16
+
+	// limit hash within HashTable.size and guarantee a positive integer
 	return int(hash&0x7FFFFFFF) % ht.size
 }
 
@@ -97,3 +106,5 @@ func (ht *HashTable) Find(value string) int {
 
 	return -1
 }
+
+
