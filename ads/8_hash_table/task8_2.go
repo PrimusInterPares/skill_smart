@@ -104,3 +104,65 @@ func isPrime(n int) bool {
 
 	return true
 }
+
+// Номер задачи из задания: 4
+// Краткое название: хэш-таблица, которая использует несколько хэш-функций для каждой операции вставки
+type DoubleHashTable struct {
+	*HashTable
+}
+
+func (dht *DoubleHashTable) SeekSlot(value string) int {
+	index := dht.h1(value)
+	step := dht.h2(value)
+	firstTombstone := -1
+
+	for range dht.size {
+		status := dht.statuses[index]
+
+		if status == statusEmpty && firstTombstone != -1 {
+			return firstTombstone
+		}
+
+		if status == statusEmpty {
+			return index
+		}
+
+		if status == statusOccupied && dht.slots[index] == value {
+			return index
+		}
+
+		if status == statusDeleted && firstTombstone == -1 {
+			firstTombstone = index
+		}
+
+		// на первой итерации цикла пробуем найти место для индекса из h1,
+		// иначе подмешиваем h2
+		index = (index + step) % dht.size
+	}
+
+	return firstTombstone
+}
+
+// полиномиальное хэширование: каждый символ строки в unsigned int прибавляется к хэшу, умноженному на 31 (как в Java)
+func (dht *DoubleHashTable) h1(value string) int {
+	var hash uint32
+
+	for i := range len(value) {
+		hash = hash*31 + uint32(value[i])
+	}
+
+	// маска 0x7FFFFFFF помоагет безопасно привести к int
+	return int(hash&0x7FFFFFFF) % dht.size
+}
+
+// алгоритм FNV-1a
+func (dht *DoubleHashTable) h2(value string) int {
+	var hash uint32 = 2166136261 // offsetBasis
+	var primeMultiplier uint32 = 16777619
+
+	for i := range len(value) {
+		hash = (hash ^ uint32(value[i])) * primeMultiplier
+	}
+
+	return int(hash)%(dht.size-1) + 1
+}

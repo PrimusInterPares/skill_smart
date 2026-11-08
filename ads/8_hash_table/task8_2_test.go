@@ -110,7 +110,7 @@ func TestDynHashTable_Resize(t *testing.T) {
 		// симуляция удаления элемента "b"
 		dht.slots[idxB] = ""
 		dht.statuses[idxB] = statusDeleted
-		dht.count-- // Уменьшаем счетчик живых элементов
+		dht.count-- // уменьшаем счетчик живых элементов
 
 		dht.Put("d")
 		dht.Put("e")
@@ -127,6 +127,111 @@ func TestDynHashTable_Resize(t *testing.T) {
 		}
 		if dht.Find("b") != -1 {
 			t.Errorf("Found deleted element 'b' after resize")
+		}
+	})
+}
+
+func TestDoubleHashTable_Operations(t *testing.T) {
+	t.Run("Basic insertion and search", func(t *testing.T) {
+		baseHT := Init(11, StepLength)
+		dht := DoubleHashTable{HashTable: &baseHT}
+
+		words := []string{"apple", "banana", "orange", "grape"}
+		insertedIndices := make(map[string]int)
+
+		for _, word := range words {
+			idx := dht.Put(word)
+
+			if idx == -1 {
+				t.Fatalf("failed to insert word %q into an empty table", word)
+			}
+
+			insertedIndices[word] = idx
+		}
+
+		for _, word := range words {
+			idx := dht.Find(word)
+
+			if idx != insertedIndices[word] {
+				t.Errorf("for word %q expected index %d, but Find returned %d", word, insertedIndices[word], idx)
+			}
+		}
+	})
+
+	t.Run("Search for non-existent element", func(t *testing.T) {
+		baseHT := Init(11, StepLength)
+		dht := DoubleHashTable{HashTable: &baseHT}
+
+		if idx := dht.Find("pineapple"); idx != -1 {
+			t.Errorf("expected -1 when searching for missing word 'pineapple', but got %d", idx)
+		}
+	})
+
+	t.Run("Prevent duplicate keys", func(t *testing.T) {
+		baseHT := Init(11, StepLength)
+		dht := DoubleHashTable{HashTable: &baseHT}
+
+		idx1 := dht.Put("apple")
+		idx2 := dht.Put("apple")
+
+		if idx2 != idx1 {
+			t.Errorf("on duplicate insert expected old index %d, but got %d", idx1, idx2)
+		}
+	})
+
+	t.Run("Handling deletion and tombstones", func(t *testing.T) {
+		baseHT := Init(11, StepLength)
+		dht := DoubleHashTable{HashTable: &baseHT}
+
+		idxApple := dht.Put("apple")
+		idxBanana := dht.Put("banana")
+
+		// simulate manual deletion of "apple" to create a tombstone
+		dht.statuses[idxApple] = statusDeleted
+		dht.slots[idxApple] = ""
+
+		if idx := dht.Find("apple"); idx != -1 {
+			t.Errorf("word 'apple' was deleted, but Find still returned index %d", idx)
+		}
+
+		// "melon" should safely reuse the tombstone slot
+		melonIdx := dht.Put("melon")
+		if melonIdx == -1 {
+			t.Fatal("failed to insert word 'melon' after creating a tombstone")
+		}
+
+		// other elements in the collision chain are still reachable
+		if idx := dht.Find("banana"); idx != idxBanana {
+			t.Errorf("search for 'banana' broke after tombstone insertion: expected %d, got %d", idxBanana, idx)
+		}
+	})
+}
+
+func TestDoubleHashTable_HashFunctions(t *testing.T) {
+	t.Run("Primary hash h1 bounds verification", func(t *testing.T) {
+		baseHT := Init(19, StepLength)
+		dht := DoubleHashTable{HashTable: &baseHT}
+
+		h1Val := dht.h1("test_string")
+		if h1Val < 0 || h1Val >= dht.size {
+			t.Errorf("h1 returned index out of bounds: %d for table size %d", h1Val, dht.size)
+		}
+	})
+
+	t.Run("Secondary hash h2 step size validation", func(t *testing.T) {
+		baseHT := Init(19, StepLength)
+		dht := DoubleHashTable{HashTable: &baseHT}
+
+		testStrings := []string{"a", "b", "hello", "very_long_string_for_hash_testing", ""}
+		for _, testStr := range testStrings {
+			step := dht.h2(testStr)
+
+			if step <= 0 {
+				t.Errorf("h2 returned invalid step size %d (must be > 0) for string %q", step, testStr)
+			}
+			if step >= dht.size {
+				t.Errorf("h2 returned step size %d which is >= table size %d for string %q", step, dht.size, testStr)
+			}
 		}
 	})
 }
