@@ -72,3 +72,139 @@ func findMinIndex[T constraints.Ordered](sets []PowerSet[T]) int {
 
 // Номер задачи из задания: 6
 // Краткое название: мульти-множество (Bag), в котором каждый элемент может присутствовать несколько раз
+type BagElement[T constraints.Ordered] struct {
+	value T
+	count int
+}
+
+func (be *BagElement[T]) isOccupied() bool {
+	return be.count > 0
+}
+
+type Bag[T constraints.Ordered] struct {
+	elements    []BagElement[T]
+	uniqueCount int
+}
+
+func InitBag[T constraints.Ordered](size int) Bag[T] {
+	if size <= 0 {
+		size = TableSize
+	}
+
+	return Bag[T]{
+		elements:    make([]BagElement[T], size),
+		uniqueCount: 0,
+	}
+}
+
+func (b *Bag[T]) Cap() int {
+	return cap(b.elements)
+}
+
+func (b *Bag[T]) Size() int {
+	return b.uniqueCount
+}
+
+func (b *Bag[T]) incIndex(index int) int {
+	return (index + 1) % b.Cap()
+}
+
+func (b *Bag[T]) findIndex(value T) int {
+	index := hashFun(value, b.Cap())
+
+	for range b.Cap() {
+		if !b.elements[index].isOccupied() {
+			return -1
+		}
+
+		if b.elements[index].value == value {
+			return index
+		}
+
+		index = b.incIndex(index)
+	}
+
+	return -1
+}
+
+func (b *Bag[T]) putWithCount(value T, count int) {
+	index := hashFun(value, b.Cap())
+
+	for range b.Cap() {
+		if b.elements[index].isOccupied() && b.elements[index].value == value {
+			b.elements[index].count += count
+
+			return
+		}
+
+		if !b.elements[index].isOccupied() {
+			b.elements[index].value = value
+			b.elements[index].count += count
+			b.uniqueCount++
+
+			return
+		}
+
+		index = b.incIndex(index)
+	}
+}
+
+func (b *Bag[T]) Put(value T) {
+	b.putWithCount(value, 1)
+}
+
+func (b *Bag[T]) Remove(value T) {
+	targetIndex := b.findIndex(value)
+
+	if targetIndex == -1 {
+		return
+	}
+
+	b.elements[targetIndex].count--
+	if b.elements[targetIndex].isOccupied() {
+		return
+	}
+
+	b.uniqueCount--
+	index := b.incIndex(targetIndex)
+	for b.elements[index].isOccupied() {
+		v := b.elements[index].value
+		c := b.elements[index].count
+		b.elements[index].count = 0
+		b.uniqueCount--
+
+		b.putWithCount(v, c)
+
+		index = b.incIndex(index)
+	}
+}
+
+// Time complexity: O(K)
+// Memory complexity O(K)
+func (b *Bag[T]) GetElements() []BagElement[T] {
+	result := make([]BagElement[T], 0, b.Size())
+
+	for _, el := range b.elements {
+		if el.isOccupied() {
+			result = append(result, BagElement[T]{
+				value: el.value,
+				count: el.count,
+			})
+		}
+	}
+
+	return result
+}
+
+func findCountInSlice[T constraints.Ordered](elements []BagElement[T], value T) int {
+	for _, el := range elements {
+		if el.value == value {
+			return el.count
+		}
+	}
+
+	return 0
+}
+
+// Рефлексия
+//

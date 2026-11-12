@@ -122,3 +122,116 @@ func TestPowerSet_MultiIntersection(t *testing.T) {
 		}
 	})
 }
+
+func TestBag_Put(t *testing.T) {
+	t.Run("unique elements", func(t *testing.T) {
+		bag := InitBag[string](10)
+
+		bag.Put("apple")
+		bag.Put("banana")
+
+		if bag.Size() != 2 {
+			t.Errorf("Expected unique size 2, got %d", bag.Size())
+		}
+	})
+
+	t.Run("duplicate elements", func(t *testing.T) {
+		bag := InitBag[string](10)
+
+		bag.Put("apple")
+		bag.Put("apple")
+		bag.Put("apple")
+
+		if bag.Size() != 1 {
+			t.Errorf("Expected unique size 1 for duplicates, got %d", bag.Size())
+		}
+
+		elements := bag.GetElements()
+		if len(elements) != 1 || findCountInSlice(elements, "apple") != 3 {
+			t.Errorf("Expected frequency 3 for 'apple', got %v", elements)
+		}
+	})
+}
+
+func TestBag_Remove(t *testing.T) {
+	t.Run("decrement frequency", func(t *testing.T) {
+		bag := InitBag[string](10)
+
+		bag.Put("apple")
+		bag.Put("apple")
+		bag.Remove("apple")
+
+		if bag.Size() != 1 {
+			t.Errorf("Expected unique size 1 after removing one instance, got %d", bag.Size())
+		}
+
+		elements := bag.GetElements()
+		if len(elements) != 1 || findCountInSlice(elements, "apple") != 1 {
+			t.Errorf("Expected remaining frequency 1 for 'apple', got %v", elements)
+		}
+	})
+
+	t.Run("complete removal and cluster rehash", func(t *testing.T) {
+		bag := InitBag[string](5)
+
+		bag.Put("A")
+		bag.Put("B")
+		bag.Put("B")
+		bag.Put("C")
+
+		bag.Remove("A")
+		bag.Remove("C")
+
+		if bag.Size() != 1 {
+			t.Errorf("Expected unique size 1 after full removals, got %d", bag.Size())
+		}
+
+		elements := bag.GetElements()
+		if len(elements) != 1 || findCountInSlice(elements, "B") != 2 {
+			t.Errorf("Expected frequency 2 for 'B' to be preserved after rehash, got %v", elements)
+		}
+	})
+
+	t.Run("remove non-existing element", func(t *testing.T) {
+		bag := InitBag[string](10)
+
+		bag.Put("apple")
+		bag.Remove("banana")
+
+		if bag.Size() != 1 {
+			t.Errorf("Expected size to remain 1 when removing missing element, got %d", bag.Size())
+		}
+	})
+}
+
+func TestBag_GetElements(t *testing.T) {
+	t.Run("empty bag", func(t *testing.T) {
+		bag := InitBag[string](10)
+		elements := bag.GetElements()
+
+		if len(elements) != 0 {
+			t.Errorf("Expected empty slice for empty bag, got length %d", len(elements))
+		}
+	})
+
+	t.Run("populated bag with frequencies", func(t *testing.T) {
+		bag := InitBag[string](10)
+
+		bag.Put("red")
+		bag.Put("blue")
+		bag.Put("red")
+		bag.Put("green")
+		bag.Put("red")
+
+		elements := bag.GetElements()
+		if len(elements) != 3 {
+			t.Errorf("Expected 3 unique elements in slice, got %d", len(elements))
+		}
+		if findCountInSlice(elements, "red") != 3 || findCountInSlice(elements, "blue") != 1 {
+			t.Errorf("Expected frequencies red=3 and blue=1, got slice %v", elements)
+		}
+		if findCountInSlice(elements, "green") != 1 {
+			t.Errorf("Expected frequency green=1, got slice %v", elements)
+		}
+	})
+}

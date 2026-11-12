@@ -35,12 +35,12 @@ func (ps *PowerSet[T]) isFull() bool {
 	return ps.count == TableSize
 }
 
-func (ps *PowerSet[T]) hashFun(value T) int {
+func hashFun[T constraints.Ordered](value T, size int) int {
 	str := fmt.Sprintf("%v", value)
 	hash := fnv.New32a()
 	hash.Write([]byte(str))
 
-	return int(hash.Sum32() % uint32(TableSize))
+	return int(hash.Sum32() % uint32(size))
 }
 
 func (ps *PowerSet[T]) incIndex(index int) int {
@@ -52,7 +52,7 @@ func (ps *PowerSet[T]) Put(value T) {
 		return
 	}
 
-	index := ps.hashFun(value)
+	index := hashFun(value, TableSize)
 
 	for range TableSize {
 		if ps.elements[index].occupied && ps.elements[index].value == value {
@@ -100,7 +100,7 @@ func (ps *PowerSet[T]) Remove(value T) bool {
 }
 
 func (ps *PowerSet[T]) findIndex(value T) int {
-	index := ps.hashFun(value)
+	index := hashFun(value, TableSize)
 
 	for range TableSize {
 		if !ps.elements[index].occupied {
