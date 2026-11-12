@@ -49,3 +49,76 @@ func TestPowerSet_CartesianProduct(t *testing.T) {
 		}
 	})
 }
+
+func TestPowerSet_MultiIntersection(t *testing.T) {
+	t.Run("three sets with common elements", func(t *testing.T) {
+		set1 := Init[string]()
+		set2 := Init[string]()
+		set3 := Init[string]()
+
+		set1.Put("A")
+		set1.Put("B")
+		set1.Put("C")
+
+		set2.Put("B")
+		set2.Put("C")
+		set2.Put("D")
+
+		set3.Put("C")
+		set3.Put("E")
+
+		sets := []PowerSet[string]{set1, set2, set3}
+		res := MultiIntersection(sets)
+
+		if res.Size() != 1 || !res.Get("C") {
+			t.Errorf("Expected intersection to contain only 'C', got size %d", res.Size())
+		}
+	})
+
+	t.Run("three sets with no common elements", func(t *testing.T) {
+		set1 := Init[string]()
+		set2 := Init[string]()
+		set3 := Init[string]()
+
+		set1.Put("A")
+		set1.Put("B")
+
+		set2.Put("B")
+		set2.Put("C")
+
+		set3.Put("C")
+		set3.Put("D")
+
+		sets := []PowerSet[string]{set1, set2, set3}
+		res := MultiIntersection(sets)
+
+		if res.Size() != 0 {
+			t.Errorf("Expected empty intersection, got size %d", res.Size())
+		}
+	})
+
+	t.Run("empty slice of sets", func(t *testing.T) {
+		var sets []PowerSet[string]
+		res := MultiIntersection(sets)
+
+		if res.Size() != 0 {
+			t.Errorf("Expected empty set for empty input slice, got size %d", res.Size())
+		}
+	})
+
+	t.Run("single set in slice", func(t *testing.T) {
+		set1 := Init[string]()
+		set1.Put("X")
+		set1.Put("Y")
+
+		sets := []PowerSet[string]{set1}
+		res := MultiIntersection(sets)
+
+		if res.Size() != 2 || !res.Get("X") {
+			t.Errorf("Expected copy of the single set with size 2, got size %d", res.Size())
+		}
+		if !res.Get("Y") {
+			t.Errorf("Expected 'Y' to be present in the resulting copy")
+		}
+	})
+}
