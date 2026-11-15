@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"slices"
 	"testing"
 )
 
@@ -377,6 +378,122 @@ func TestCountingBloomFilter_PublicAPI(t *testing.T) {
 
 		if !cbf.IsValue("heavy_key") {
 			t.Errorf("saturated element must remain present to avoid false negatives")
+		}
+	})
+}
+
+func TestReconstructSet(t *testing.T) {
+	t.Run("error when target filter is nil or invalid size", func(t *testing.T) {
+		universe := []string{"alpha", "beta"}
+
+		if _, err := ReconstructSet(nil, universe); !errors.Is(err, ErrNilFilter) {
+			t.Errorf("nil target: got error %v; want %v", err, ErrNilFilter)
+		}
+
+		invalidTarget := &BloomFilter{filter_len: 0}
+		if _, err := ReconstructSet(invalidTarget, universe); !errors.Is(err, ErrInvalidFilterSize) {
+			t.Errorf("zero filter_len: got error %v; want %v", err, ErrInvalidFilterSize)
+		}
+	})
+
+	t.Run("empty target filter reconstructs empty slice without error", func(t *testing.T) {
+		target := NewBloomFilter(32)
+		universe := []string{"alpha", "beta", "gamma"}
+
+		got, err := ReconstructSet(target, universe)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(got) != 0 {
+			t.Errorf("got %v; want empty slice", got)
+		}
+	})
+
+	t.Run("exact reconstruction filters out false positive candidates", func(t *testing.T) {
+		target := NewBloomFilter(64)
+
+		target.Add("cat")
+		target.Add("dog")
+
+		universe := []string{"cat", "dog", "bird", "fish", "horse", "mouse", "wolf", "fox", "bear", "lion"}
+
+		got, err := ReconstructSet(target, universe)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		reconstructedFilter := NewBloomFilter(target.filter_len)
+		for _, word := range got {
+			reconstructedFilter.Add(word)
+		}
+
+		if !slices.Equal(reconstructedFilter.bits, target.bits) {
+			t.Errorf("reconstructed filter bits %v do not match target bits %v", reconstructedFilter.bits, target.bits)
+		}
+		if !slices.Contains(got, "cat") || !slices.Contains(got, "dog") {
+			t.Errorf("reconstructed set %v missing original elements", got)
+		}
+	})
+
+	t.Run("handles duplicate entries in universe without distorting bit ownership", func(t *testing.T) {
+		target := NewBloomFilter(32)
+
+		target.Add("unique_item")
+
+		universe := []string{"unique_item", "unique_item", "unique_item", "noise"}
+
+		got, err := ReconstructSet(target, universe)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(got) != 1 || got[0] != "unique_item" {
+			t.Errorf("got %v; want [unique_item]", got)
+		}
+	})
+
+	t.Run("greedy cover reconstructs minimal subset when bits collide across candidates", func(t *testing.T) {
+		target := NewBloomFilter(16)
+
+		items := []string{"0123456789", "1234567890", "2345678901", "3456789012"}
+		for _, item := range items {
+			target.Add(item)
+		}
+
+		universe := append([]string{}, items...)
+		universe = append(universe, "4567890123", "5678901234", "6789012345", "7890123456", "8901234567", "9012345678")
+
+		got, err := ReconstructSet(target, universe)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		reconstructedFilter := NewBloomFilter(target.filter_len)
+		for _, word := range got {
+			reconstructedFilter.Add(word)
+		}
+
+		if !slices.Equal(reconstructedFilter.bits, target.bits) {
+			t.Errorf("reconstructed bits %v do not match target bits %v", reconstructedFilter.bits, target.bits)
+		}
+		if len(got) > len(items) {
+			t.Errorf("greedy cover selected %d items, expected at most %d: %v", len(got), len(items), got)
+		}
+	})
+
+	t.Run("returns ErrIncompleteUniverse when target contains bits from missing words", func(t *testing.T) {
+		target := NewBloomFilter(64)
+
+		target.Add("known_word")
+		target.Add("secret_missing_word")
+
+		universe := []string{"known_word", "other_word"}
+
+		got, err := ReconstructSet(target, universe)
+		if !errors.Is(err, ErrIncompleteUniverse) {
+			t.Errorf("got error %v; want %v", err, ErrIncompleteUniverse)
+		}
+		if !slices.Contains(got, "known_word") {
+			t.Errorf("expected partial result to still contain known_word, got %v", got)
 		}
 	})
 }
