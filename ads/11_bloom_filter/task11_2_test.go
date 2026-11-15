@@ -122,3 +122,261 @@ func TestMergeBloomFilters(t *testing.T) {
 		}
 	})
 }
+
+func TestCountingBloomFilter_NewCountingBloomFilter(t *testing.T) {
+	t.Run("creates filter with default size when provided size is zero or negative", func(t *testing.T) {
+		tests := []struct {
+			size int
+			want int
+		}{
+			{0, 1},
+			{-10, 1},
+			{10, 10},
+		}
+
+		for _, test := range tests {
+			cbf := NewCountingBloomFilter(test.size)
+
+			if cbf.filterLen != test.want {
+				t.Errorf("NewCountingBloomFilter(%d) = %d; want %d", test.size, cbf.filterLen, test.want)
+			}
+			if len(cbf.counters) != countersLen(test.want) {
+				t.Errorf("counters length for size %d is incorrect: got %d, want %d", test.want, len(cbf.counters), countersLen(test.want))
+			}
+		}
+	})
+}
+
+func TestCountingBloomFilter_GetCount(t *testing.T) {
+	t.Run("returns zero for out-of-bounds index", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		if got := cbf.getCount(15); got != 0 {
+			t.Errorf("getCount(15) = %d; want 0", got)
+		}
+	})
+
+	t.Run("returns zero for uninitialized counters", func(t *testing.T) {
+		cbf := &CountingBloomFilter{filterLen: 10, counters: nil}
+
+		if got := cbf.getCount(5); got != 0 {
+			t.Errorf("getCount(5) = %d; want 0", got)
+		}
+	})
+
+	t.Run("returns correct count for valid index", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.setCount(5, 7)
+
+		if got := cbf.getCount(5); got != 7 {
+			t.Errorf("getCount(5) = %d; want 7", got)
+		}
+	})
+}
+
+func TestCountingBloomFilter_SetCount(t *testing.T) {
+	t.Run("sets count for valid index without corrupting adjacent nibbles", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(16)
+		boundaryIndices := []uint{0, 7, 8, 15}
+
+		for _, idx := range boundaryIndices {
+			cbf.setCount(idx, MaxCounterVal)
+		}
+
+		for _, idx := range boundaryIndices {
+			if got := cbf.getCount(idx); got != MaxCounterVal {
+				t.Errorf("getCount(%d) = %d; want %d", idx, got, MaxCounterVal)
+			}
+		}
+
+		for _, untouched := range []uint{1, 6, 9, 14} {
+			if got := cbf.getCount(untouched); got != 0 {
+				t.Errorf("adjacent counter at %d was corrupted: got %d; want 0", untouched, got)
+			}
+		}
+	})
+
+	t.Run("does nothing for out-of-bounds index", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.setCount(15, 7)
+
+		if got := cbf.getCount(15); got != 0 {
+			t.Errorf("getCount(15) = %d; want 0", got)
+		}
+	})
+
+	t.Run("initializes counters if they are nil", func(t *testing.T) {
+		cbf := &CountingBloomFilter{filterLen: 10, counters: nil}
+
+		cbf.setCount(5, 7)
+
+		if len(cbf.counters) != countersLen(10) {
+			t.Errorf("counters length is incorrect: got %d, want %d", len(cbf.counters), countersLen(10))
+		}
+		if got := cbf.getCount(5); got != 7 {
+			t.Errorf("getCount(5) = %d; want 7", got)
+		}
+	})
+}
+
+func TestCountingBloomFilter_IncCount(t *testing.T) {
+	t.Run("increments count for valid index", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.setCount(5, 7)
+		cbf.incCount(5)
+
+		if got := cbf.getCount(5); got != 8 {
+			t.Errorf("getCount(5) = %d; want 8", got)
+		}
+	})
+
+	t.Run("does nothing for out-of-bounds index", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.incCount(15)
+
+		if got := cbf.getCount(15); got != 0 {
+			t.Errorf("getCount(15) = %d; want 0", got)
+		}
+	})
+
+	t.Run("saturates at max value without overflow", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.setCount(5, MaxCounterVal)
+		cbf.incCount(5)
+
+		if got := cbf.getCount(5); got != MaxCounterVal {
+			t.Errorf("getCount(5) = %d; want %d", got, MaxCounterVal)
+		}
+	})
+}
+
+func TestCountingBloomFilter_DecCount(t *testing.T) {
+	t.Run("decrements count for valid index", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.setCount(5, 7)
+		cbf.decCount(5)
+
+		if got := cbf.getCount(5); got != 6 {
+			t.Errorf("getCount(5) = %d; want 6", got)
+		}
+	})
+
+	t.Run("does nothing for out-of-bounds index", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.decCount(15)
+
+		if got := cbf.getCount(15); got != 0 {
+			t.Errorf("getCount(15) = %d; want 0", got)
+		}
+	})
+
+	t.Run("does nothing if count is already zero", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.decCount(5)
+
+		if got := cbf.getCount(5); got != 0 {
+			t.Errorf("getCount(5) = %d; want 0", got)
+		}
+	})
+
+	t.Run("does nothing if count is saturated at max value", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(10)
+
+		cbf.setCount(5, MaxCounterVal)
+		cbf.decCount(5)
+
+		if got := cbf.getCount(5); got != MaxCounterVal {
+			t.Errorf("getCount(5) = %d; want %d", got, MaxCounterVal)
+		}
+	})
+}
+
+func TestCountingBloomFilter_PublicAPI(t *testing.T) {
+	t.Run("add, check and remove element", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(32)
+
+		if cbf.IsValue("alpha") {
+			t.Errorf("expected false before adding element")
+		}
+
+		cbf.Add("alpha")
+		if !cbf.IsValue("alpha") {
+			t.Errorf("expected true after adding element")
+		}
+
+		cbf.Remove("alpha")
+		if cbf.IsValue("alpha") {
+			t.Errorf("expected false after removing element")
+		}
+	})
+
+	t.Run("removing one element does not remove colliding element", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(32)
+		items := []string{
+			"0123456789", "1234567890", "2345678901", "3456789012", "4567890123",
+			"5678901234", "6789012345", "7890123456", "8901234567", "9012345678",
+		}
+
+		for _, item := range items {
+			cbf.Add(item)
+		}
+
+		cbf.Remove(items[0])
+
+		for _, remaining := range items[1:] {
+			if !cbf.IsValue(remaining) {
+				t.Errorf("false negative for %q after removing another element", remaining)
+			}
+		}
+	})
+
+	t.Run("removing duplicate additions requires matching number of removals", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(32)
+
+		cbf.Add("dup")
+		cbf.Add("dup")
+
+		cbf.Remove("dup")
+		if !cbf.IsValue("dup") {
+			t.Errorf("expected element to remain after first removal")
+		}
+
+		cbf.Remove("dup")
+		if cbf.IsValue("dup") {
+			t.Errorf("expected element to be absent after second removal")
+		}
+	})
+
+	t.Run("removing guaranteed absent element does not corrupt existing counters", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(64)
+		cbf.Add("existing")
+
+		cbf.Remove("non_existent_key")
+
+		if !cbf.IsValue("existing") {
+			t.Errorf("removing non-existent key corrupted existing element")
+		}
+	})
+
+	t.Run("saturated counter prevents false negatives after removal", func(t *testing.T) {
+		cbf := NewCountingBloomFilter(32)
+
+		for range MaxCounterVal + 5 {
+			cbf.Add("heavy_key")
+		}
+
+		cbf.Remove("heavy_key")
+
+		if !cbf.IsValue("heavy_key") {
+			t.Errorf("saturated element must remain present to avoid false negatives")
+		}
+	})
+}
