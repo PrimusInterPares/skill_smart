@@ -1,7 +1,7 @@
 package main
 
 import (
-// "os"
+	"os"
 )
 
 const (
@@ -89,3 +89,5 @@ func (bf *BloomFilter) IsValue(s string) bool {
 
 	return bf.testBit(uint(h1)) && bf.testBit(uint(h2))
 }
+
+
