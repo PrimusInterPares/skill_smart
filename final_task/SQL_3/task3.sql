@@ -61,3 +61,39 @@ SELECT
   )
 FROM workshops w
 ;
+
+SELECT
+  s.squad_id,
+  s.name,
+  s.formation_type,
+  s.leader_id,
+  json_build_object(
+    'member_ids', COALESCE((
+      SELECT json_agg(sm.dwarf_id)
+      FROM squad_members sm
+      WHERE s.squad_id = sm.squad_id
+    ), '[]'::json),
+    'equipment_ids', COALESCE((
+      SELECT json_agg(se.equipment_id)
+      FROM squad_equipment se
+      WHERE s.squad_id = se.squad_id
+    ), '[]'::json),
+    'operation_ids', COALESCE((
+      SELECT json_agg(so.operation_id)
+      FROM squad_operations so
+      WHERE s.squad_id = so.squad_id
+      AND so.start_date IS NOT NULL
+    ), '[]'::json),
+    'training_schedule_ids', COALESCE((
+      SELECT json_agg(st.schedule_id)
+      FROM squad_training st
+      WHERE s.squad_id = st.squad_id
+    ), '[]'::json),
+    'battle_report_ids', COALESCE((
+      SELECT json_agg(sb.report_id)
+      FROM squad_battles sb
+      WHERE s.squad_id = sb.squad_id
+    ), '[]'::json)
+  )
+FROM military_squads s
+;
