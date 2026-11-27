@@ -9,18 +9,19 @@ SELECT
       FROM dwarf_skills ds
       WHERE d.dwarf_id = ds.dwarf_id
     ), '[]'::json),
-    'resource_ids', COALESCE((
+    'assignment_ids', COALESCE((
       SELECT json_agg(da.assignment_id)
       FROM dwarf_assignments da
       WHERE d.dwarf_id = da.dwarf_id
+      AND (da.end_date IS NULL OR da.end_date >= CURRENT_DATE)
     ), '[]'::json),
-    'workshop_ids', COALESCE((
-      SELECT json_agg(sm.squad_id)
+    'squad_ids', COALESCE((
+      SELECT json_agg(DISTINCT sm.squad_id)
       FROM squad_members sm
       WHERE d.dwarf_id = sm.dwarf_id
     ), '[]'::json),
-    'squad_ids', COALESCE((
-      SELECT json_agg(de.equipment_id)
+    'equipment_ids', COALESCE((
+      SELECT json_agg(DISTINCT de.equipment_id)
       FROM dwarf_equipment de
       WHERE d.dwarf_id = de.dwarf_id
     ), '[]'::json)
@@ -35,7 +36,7 @@ SELECT
   w.quality,
   json_build_object(
     'craftsdwarf_ids', COALESCE((
-      SELECT json_agg(wc.dwarf_id)
+      SELECT json_agg(DISTINCT wc.dwarf_id)
       FROM workshop_craftsdwarves wc
       WHERE w.workshop_id = wc.workshop_id
     ), '[]'::json),
@@ -43,22 +44,20 @@ SELECT
       SELECT json_agg(p.project_id)
       FROM projects p
       WHERE w.workshop_id = p.workshop_id
+      AND p.status = 'active'
     ), '[]'::json),
     'input_material_ids', COALESCE((
-      SELECT json_agg(wm.material_id)
+      SELECT json_agg(DISTINCT wm.material_id)
       FROM workshop_materials wm
       WHERE w.workshop_id = wm.workshop_id
       AND wm.is_input = TRUE
     ), '[]'::json),
     'output_product_ids', COALESCE((
-      SELECT json_agg(wp.product_id)
+      SELECT json_agg(DISTINCT wp.product_id)
       FROM workshop_products wp
-      INNER JOIN products p ON wp.product_id = p.product_id
-      INNER JOIN workshop_materials wm ON p.material_id = wm.material_id
       WHERE w.workshop_id = wp.workshop_id
-      AND wm.is_input = FALSE
     ), '[]'::json)
-  )
+  ) AS related_entities
 FROM workshops w
 ;
 
@@ -69,12 +68,12 @@ SELECT
   s.leader_id,
   json_build_object(
     'member_ids', COALESCE((
-      SELECT json_agg(sm.dwarf_id)
+      SELECT json_agg(DISTINCT sm.dwarf_id)
       FROM squad_members sm
       WHERE s.squad_id = sm.squad_id
     ), '[]'::json),
     'equipment_ids', COALESCE((
-      SELECT json_agg(se.equipment_id)
+      SELECT json_agg(DISTINCT se.equipment_id)
       FROM squad_equipment se
       WHERE s.squad_id = se.squad_id
     ), '[]'::json),
@@ -82,7 +81,7 @@ SELECT
       SELECT json_agg(so.operation_id)
       FROM squad_operations so
       WHERE s.squad_id = so.squad_id
-      AND so.start_date IS NOT NULL
+      AND so.start_date <= CURRENT_DATE
     ), '[]'::json),
     'training_schedule_ids', COALESCE((
       SELECT json_agg(st.schedule_id)
@@ -94,6 +93,6 @@ SELECT
       FROM squad_battles sb
       WHERE s.squad_id = sb.squad_id
     ), '[]'::json)
-  )
+  ) AS related_entities
 FROM military_squads s
 ;
